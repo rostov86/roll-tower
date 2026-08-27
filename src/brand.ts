@@ -44,6 +44,7 @@ export const brand = {
   copy: {
     demoBadge: 'ДЕМО',
     demoNote: 'Не для посадки на столы · Александр Ростов',
+    wallWatermark: 'Это демо-игра · автор Александр Ростов',
     play: 'Играть',
     again: 'Ещё раз',
     share: 'Поделиться',

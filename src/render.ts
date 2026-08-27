@@ -306,7 +306,121 @@ function drawWorldRooms(ctx: CanvasRenderingContext2D, cam: Camera, t: number): 
   if (v.yB < 640 && v.yT > 220) drawRestaurant(ctx, cam, t)
   if (v.yB < 1100 && v.yT > 600) drawUpperLounge(ctx, cam, t)
   if (v.yT > 1000) drawLanternStrings(ctx, cam, t)
+  drawSparseWallDecor(ctx, cam)
 }
+
+/** Occasional brand fish + demo watermark on walls (not a full overlay). */
+function drawSparseWallDecor(ctx: CanvasRenderingContext2D, cam: Camera): void {
+  const v = viewWorld(cam)
+  const fishBands: { y0: number; y1: number; chance: number }[] = [
+    { y0: 30, y1: 200, chance: 0.16 },
+    { y0: 300, y1: 560, chance: 0.12 },
+    { y0: 660, y1: 880, chance: 0.1 },
+  ]
+  const cellW = 96
+  const cellH = 72
+  for (const band of fishBands) {
+    const iy0 = Math.floor(Math.max(v.yB, band.y0) / cellH)
+    const iy1 = Math.ceil(Math.min(v.yT, band.y1) / cellH)
+    const ix0 = Math.floor(v.xL / cellW) - 1
+    const ix1 = Math.ceil(v.xR / cellW) + 1
+    for (let iy = iy0; iy <= iy1; iy++) {
+      for (let ix = ix0; ix <= ix1; ix++) {
+        const roll = hash2(ix + 19, iy + 83)
+        if (roll > band.chance) continue
+        const wx = ix * cellW + 18 + hash2(ix, iy + 3) * 44
+        const wy = iy * cellH + 12 + hash2(ix + 2, iy) * 28
+        if (wy < band.y0 || wy > band.y1) continue
+        const flip = hash2(ix, iy + 5) > 0.5
+        const size = 13 + hash2(ix, iy + 7) * 11
+        drawLogoFishMark(ctx, cam, wx, wy, size, flip, 0.11 + hash2(ix, iy + 9) * 0.1)
+      }
+    }
+  }
+
+  const wCellW = 240
+  const wCellH = 180
+  const wy0 = Math.floor(v.yB / wCellH) - 1
+  const wy1 = Math.ceil(v.yT / wCellH) + 1
+  const wx0 = Math.floor(v.xL / wCellW) - 1
+  const wx1 = Math.ceil(v.xR / wCellW) + 1
+  for (let iy = wy0; iy <= wy1; iy++) {
+    for (let ix = wx0; ix <= wx1; ix++) {
+      // ~6% of cells — rare, not a wallpaper
+      if (hash2(ix + 401, iy + 777) > 0.06) continue
+      const wx = ix * wCellW + 36 + hash2(ix, iy) * 90
+      const wy = iy * wCellH + 40 + hash2(ix + 1, iy + 2) * 70
+      if (wy < 40) continue
+      const rot = hash2(ix, iy + 4) * 0.5 - 0.25
+      drawDemoWatermark(ctx, cam, wx, wy, rot)
+    }
+  }
+}
+
+/** Fish mark from Sushi Market YOKO logo — no circle, just the fish. */
+function drawLogoFishMark(
+  ctx: CanvasRenderingContext2D,
+  cam: Camera,
+  wx: number,
+  wy: number,
+  size: number,
+  flip: boolean,
+  alpha: number,
+): void {
+  const p = worldToScreen(cam, wx, wy)
+  const s = (cam.scale * size) / 20
+  ctx.save()
+  ctx.translate(p.x, p.y)
+  if (flip) ctx.scale(-1, 1)
+  ctx.globalAlpha = alpha
+  ctx.strokeStyle = '#1a1a1a'
+  ctx.lineWidth = Math.max(1.2, 2.1 * s)
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
+  ctx.beginPath()
+  ctx.ellipse(5.5 * s, 0, 7.5 * s, 5.2 * s, 0, 0, Math.PI * 2)
+  ctx.stroke()
+  ctx.fillStyle = '#e87a20'
+  ctx.beginPath()
+  ctx.arc(7.5 * s, 0, 2 * s, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.strokeStyle = '#1a1a1a'
+  ctx.beginPath()
+  ctx.moveTo(-1.5 * s, -2.4 * s)
+  ctx.lineTo(-8 * s, -2.4 * s)
+  ctx.moveTo(-1.5 * s, 2.4 * s)
+  ctx.lineTo(-8 * s, 2.4 * s)
+  ctx.stroke()
+  ctx.beginPath()
+  ctx.moveTo(-8 * s, -2.4 * s)
+  ctx.quadraticCurveTo(-15 * s, -7.5 * s, -17.5 * s, -3.5 * s)
+  ctx.moveTo(-8 * s, 2.4 * s)
+  ctx.quadraticCurveTo(-15 * s, 7.5 * s, -17.5 * s, 3.5 * s)
+  ctx.stroke()
+  ctx.restore()
+}
+
+function drawDemoWatermark(
+  ctx: CanvasRenderingContext2D,
+  cam: Camera,
+  wx: number,
+  wy: number,
+  rot: number,
+): void {
+  const p = worldToScreen(cam, wx, wy)
+  const fs = Math.max(9, 10.5 * cam.scale)
+  ctx.save()
+  ctx.translate(p.x, p.y)
+  ctx.rotate(rot)
+  ctx.globalAlpha = 0.16
+  ctx.fillStyle = '#163056'
+  ctx.font = `600 ${fs}px ${brand.font}`
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText(brand.copy.wallWatermark, 0, 0)
+  ctx.restore()
+}
+
 
 function drawKitchenWall(ctx: CanvasRenderingContext2D, cam: Camera, xL: number, xR: number): void {
   fillWorld(ctx, cam, xL - 40, -8, xR - xL + 80, 248, '#f3e6d4')

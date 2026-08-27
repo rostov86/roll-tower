@@ -4,9 +4,6 @@ export interface InputState {
   pointerX: number
   pointerY: number
   dropQueued: boolean
-  gamma: number
-  hasMotion: boolean
-  motionPermission: 'unknown' | 'granted' | 'denied' | 'unsupported'
 }
 
 export const input: InputState = {
@@ -15,9 +12,6 @@ export const input: InputState = {
   pointerX: 0,
   pointerY: 0,
   dropQueued: false,
-  gamma: 0,
-  hasMotion: false,
-  motionPermission: 'unknown',
 }
 
 function onKey(e: KeyboardEvent, down: boolean): void {
@@ -71,13 +65,6 @@ export function bindInput(canvas: HTMLCanvasElement): void {
   window.addEventListener('pointerup', up)
   window.addEventListener('pointercancel', up)
 
-  window.addEventListener('deviceorientation', (e: DeviceOrientationEvent) => {
-    if (typeof e.gamma === 'number' && Number.isFinite(e.gamma)) {
-      input.gamma = e.gamma
-      input.hasMotion = true
-    }
-  })
-
   document.addEventListener('gesturestart', (e) => e.preventDefault())
   document.addEventListener(
     'touchmove',
@@ -87,22 +74,6 @@ export function bindInput(canvas: HTMLCanvasElement): void {
     },
     { passive: false },
   )
-}
-
-export async function requestMotionPermission(): Promise<void> {
-  const DOE = DeviceOrientationEvent as unknown as {
-    requestPermission?: () => Promise<string>
-  }
-  if (typeof DOE.requestPermission === 'function') {
-    try {
-      const res = await DOE.requestPermission()
-      input.motionPermission = res === 'granted' ? 'granted' : 'denied'
-    } catch {
-      input.motionPermission = 'denied'
-    }
-  } else {
-    input.motionPermission = 'unsupported'
-  }
 }
 
 export function consumeDrop(): boolean {

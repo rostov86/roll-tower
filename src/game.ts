@@ -1,7 +1,7 @@
 import { brand } from './brand'
 import { sfxCombo, sfxDrop, sfxLand, sfxMiss, sfxPerfect } from './audio'
 import { checkAchievements, resetRunUnlocks, tickToasts } from './achievements'
-import { consumeDrop, input, keyDir } from './input'
+import { consumeDrop, keyDir } from './input'
 import { spawnMissDust, spawnSparkles, spawnWasabi, updateParticles } from './particles'
 import {
   Camera,
@@ -226,9 +226,8 @@ export class Game {
       this.swingT += this.swingSpeed() * dt
       const L = HANG_GAP
       const maxTheta = Math.min(0.68, this.swingAmp() / L)
-      const tilt = input.hasMotion ? clamp(input.gamma * 0.012, -0.16, 0.16) : 0
       const keys = keyDir() * 0.055
-      const theta = Math.sin(this.swingT) * maxTheta + tilt + keys
+      const theta = Math.sin(this.swingT) * maxTheta + keys
       this.trolleyX = this.pivotX
       this.current.x = this.pivotX + L * Math.sin(theta)
       this.current.y = this.hangY() + L * (1 - Math.cos(theta))
@@ -545,8 +544,4 @@ export class Game {
       h: viewH,
     }
   }
-}
-
-function clamp(n: number, a: number, b: number): number {
-  return Math.max(a, Math.min(b, n))
 }

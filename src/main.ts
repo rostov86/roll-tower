@@ -1,7 +1,7 @@
 import { applyBrandTheme, brand } from './brand'
 import { enableAudio } from './audio'
 import { Game } from './game'
-import { bindInput, requestMotionPermission } from './input'
+import { bindInput } from './input'
 import { mountUi, setScreen, showGameOver, syncToasts, updateHud } from './ui'
 import './style.css'
 
@@ -54,7 +54,6 @@ window.addEventListener('orientationchange', () => setTimeout(resize, 120))
 
 async function startGame(): Promise<void> {
   enableAudio()
-  await requestMotionPermission()
   game.start()
   setScreen('playing')
 }
