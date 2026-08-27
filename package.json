@@ -1,0 +1,16 @@
+{
+  "name": "roll-tower",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "node scripts/gen-icons.mjs && tsc && vite build",
+    "preview": "vite preview --host",
+    "icons": "node scripts/gen-icons.mjs"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "vite": "^6.0.7"
+  }
+}
