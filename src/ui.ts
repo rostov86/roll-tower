@@ -25,20 +25,14 @@ export function mountUi(el: HTMLElement, h: UiHandlers): void {
   el.innerHTML = `
     <div class="panel splash" id="panel-splash" data-ui>
       <div class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 96 96" width="92" height="92">
-          <defs>
-            <radialGradient id="g1" cx="35%" cy="30%" r="70%">
-              <stop offset="0%" stop-color="#ffe27a"/>
-              <stop offset="55%" stop-color="#ff3b4e"/>
-              <stop offset="100%" stop-color="#d01e36"/>
-            </radialGradient>
-          </defs>
-          <circle cx="48" cy="48" r="46" fill="#7ee7ff"/>
-          <circle cx="48" cy="48" r="40" fill="url(#g1)"/>
-          <ellipse cx="48" cy="48" rx="28" ry="28" fill="#1b3a22"/>
-          <ellipse cx="48" cy="48" rx="20" ry="20" fill="#fff6e8"/>
-          <ellipse cx="48" cy="48" rx="11" ry="11" fill="#ff6b4a"/>
-          <ellipse cx="48" cy="48" rx="4" ry="7" fill="#d4452e" transform="rotate(20 48 48)"/>
+        <svg viewBox="0 0 16 16" width="80" height="80" shape-rendering="crispEdges">
+          <rect width="16" height="16" fill="#4ec6f5"/>
+          <rect x="2" y="2" width="12" height="12" fill="#163820"/>
+          <rect x="3" y="3" width="10" height="10" fill="#2f6340"/>
+          <rect x="4" y="4" width="8" height="8" fill="#fff6e8"/>
+          <rect x="6" y="6" width="4" height="4" fill="#ff6b4a"/>
+          <rect x="7" y="7" width="2" height="2" fill="#d4452e"/>
+          <rect x="5" y="5" width="1" height="1" fill="#ffffff"/>
         </svg>
       </div>
       <div class="eyebrow">${escapeHtml(brand.name)}</div>
@@ -161,7 +155,15 @@ export function updateHud(opts: {
   const hearts = byId('hud-hearts')
   hearts.innerHTML = Array.from({ length: max }, (_, i) => {
     const on = i < opts.lives
-    return `<span class="heart ${on ? 'on' : 'off'}" aria-hidden="true">♥</span>`
+    const c = on ? '#ff3b4e' : '#8aa0b4'
+    return `<svg class="heart ${on ? 'on' : 'off'}" viewBox="0 0 7 7" width="16" height="16" shape-rendering="crispEdges" aria-hidden="true">
+      <rect x="1" y="0" width="2" height="1" fill="${c}"/>
+      <rect x="4" y="0" width="2" height="1" fill="${c}"/>
+      <rect x="0" y="1" width="7" height="3" fill="${c}"/>
+      <rect x="1" y="4" width="5" height="1" fill="${c}"/>
+      <rect x="2" y="5" width="3" height="1" fill="${c}"/>
+      <rect x="3" y="6" width="1" height="1" fill="${c}"/>
+    </svg>`
   }).join('')
   const combo = byId('hud-combo')
   const mult = byId('hud-mult')

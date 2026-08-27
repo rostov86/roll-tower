@@ -18,7 +18,7 @@ export const brand = {
   backgroundColor: '#7ee7ff',
 
   /** Canvas / HUD type. */
-  font: '"Fredoka", "Nunito", "Segoe UI", system-ui, sans-serif',
+  font: '"Press Start 2P", "Pixelify Sans", "Courier New", monospace',
 
   colors: {
     primary: '#ff3b4e',
@@ -97,6 +97,7 @@ export type Brand = typeof brand
 export function applyBrandTheme(): void {
   const s = document.documentElement.style
   const c = brand.colors
+  s.setProperty('--font', brand.font)
   s.setProperty('--bg', c.sky)
   s.setProperty('--paper', c.paper)
   s.setProperty('--paper-dim', c.paperDim)

@@ -17,7 +17,6 @@ import {
   drawTapHint,
   drawVignette,
   drawWasabiFlash,
-  worldToScreen,
 } from './render'
 import { getBest, hasSeenDropHint, setBest } from './storage'
 import type { FillingId, FloatText, Particle, Roll, RollStyle, ScreenId } from './types'
@@ -70,7 +69,6 @@ export class Game {
   private settleT = 0
   private swingT = 0
   private pivotX = 0
-  private wobble = 0
   private viewW = 400
   private viewH = 720
 
@@ -98,7 +96,6 @@ export class Game {
     this.cameraX = 0
     this.targetCamX = 0
     this.nextType = 0
-    this.wobble = 0
     this.hintAge = 0
     this.showHint = !hasSeenDropHint()
     resetRunUnlocks()
@@ -192,8 +189,8 @@ export class Game {
       return
     }
 
-    this.updateLean()
-    this.cameraX += (this.targetCamX - this.cameraX) * Math.min(1, dt * 3.4)
+    this.cameraX = 0
+    this.targetCamX = 0
     this.cameraY += (this.targetCamY - this.cameraY) * Math.min(1, dt * 4.2)
 
     if (this.phase === 'settling') {
@@ -262,26 +259,14 @@ export class Game {
   }
 
   private followCam(): void {
-    const top = this.tower[this.tower.length - 1]
     const hang =
       this.phase === "swinging" && this.current
         ? this.current.y + this.current.h
         : this.hangY() + ROLL_H
     const scale = Math.min(this.viewW / WORLD_W, this.viewH / 720) * 1.08
     this.targetCamY = hang - (0.6 * this.viewH) / Math.max(0.5, scale)
-    this.targetCamX = top ? top.x : 0
-  }
-
-  private updateLean(): void {
-    if (this.tower.length < 2) {
-      this.wobble = 0
-      return
-    }
-    const base = this.tower[0]
-    const lean = Math.abs(this.tower[this.tower.length - 1].x - base.x)
-    const warn = base.w * 0.28
-    const fail = base.w * LEAN_COLLAPSE
-    this.wobble = lean > warn ? Math.min(1, (lean - warn) / Math.max(8, fail - warn)) : 0
+    this.targetCamX = 0
+    this.cameraX = 0
   }
 
   private idleDecor(dt: number): void {
@@ -389,6 +374,7 @@ export class Game {
     const gained = Math.round((points + perfectBonus) * (perfect ? this.multiplier : 1))
     this.score += gained
     this.popScore(cur.x, cur.y + cur.h, gained, perfect)
+    this.shake = perfect ? 12 : 7
 
     checkAchievements({
       floors: this.floors,
@@ -516,16 +502,7 @@ export class Game {
       drawGhost(ctx, cam, this.current.x, prev.y + prev.h, this.current.w, q)
     }
 
-    ctx.save()
-    if (this.wobble > 0 && this.tower.length) {
-      const base = worldToScreen(cam, this.tower[0].x, 0)
-      const ang = Math.sin(this.time * 13) * this.wobble * 0.04
-      ctx.translate(base.x, base.y)
-      ctx.rotate(ang)
-      ctx.translate(-base.x, -base.y)
-    }
     for (const r of this.tower) drawRoll(ctx, cam, r)
-    ctx.restore()
 
     if (this.current) drawRoll(ctx, cam, this.current)
     for (const r of this.falling) drawRoll(ctx, cam, r)
@@ -549,13 +526,14 @@ export class Game {
   makeCamera(viewW: number, viewH: number): Camera {
     const scale = Math.min(viewW / WORLD_W, viewH / 720) * 1.08
     const ang = this.time * 28
-    const wob = this.wobble * Math.sin(this.time * 14) * 4
     this.viewW = viewW
     this.viewH = viewH
+    this.cameraX = 0
+    this.targetCamX = 0
     return {
       x: this.cameraX,
       y: this.cameraY,
-      shakeX: Math.sin(ang) * this.shake + wob,
+      shakeX: Math.sin(ang) * this.shake,
       shakeY: Math.cos(ang * 1.3) * this.shake * 0.7,
       scale,
       w: viewW,
