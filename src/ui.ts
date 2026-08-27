@@ -30,6 +30,8 @@ export function mountUi(el: HTMLElement, h: UiHandlers): void {
       <div class="eyebrow">${escapeHtml(brand.name)}</div>
       <h1>${escapeHtml(brand.gameName)}</h1>
       <p class="slogan">${escapeHtml(brand.slogan)}</p>
+      <div class="demo-badge">${escapeHtml(brand.copy.demoBadge)}</div>
+      <p class="demo-note">${escapeHtml(brand.copy.demoNote)}</p>
       <button class="btn primary" id="btn-play" type="button">${escapeHtml(brand.copy.play)}</button>
       <button class="btn ghost" id="btn-ach" type="button">${escapeHtml(brand.copy.achievements)}</button>
       <p class="hint" id="tap-hint">${escapeHtml(brand.copy.tapHint)}</p>

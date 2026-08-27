@@ -42,6 +42,8 @@ export const brand = {
   },
 
   copy: {
+    demoBadge: 'ДЕМО',
+    demoNote: 'Не для посадки на столы · Александр Ростов',
     play: 'Играть',
     again: 'Ещё раз',
     share: 'Поделиться',
