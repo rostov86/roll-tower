@@ -1,5 +1,5 @@
 /* Offline cache for Башня роллов */
-const CACHE = 'roll-tower-v1'
+const CACHE = 'roll-tower-v2'
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
