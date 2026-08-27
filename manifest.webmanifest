@@ -1,0 +1,26 @@
+{
+  "name": "Башня роллов — СушиМаркет",
+  "short_name": "Башня роллов",
+  "description": "Собери башню. Съешь заказ.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#12080a",
+  "theme_color": "#12080a",
+  "lang": "ru",
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
