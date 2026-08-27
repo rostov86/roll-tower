@@ -93,20 +93,20 @@ function lerpHex(a: string, b: string, t: number): string {
   return `rgb(${r},${g},${bl})`
 }
 
-/** 0 day → 0.45 high sky → 0.7 dusk → 1 night */
+/** 0 day → dusk → night. Night only after a very tall tower. */
 export function altitudeOf(cam: Camera): number {
-  return clamp01(Math.max(0, cam.y) / 1700)
+  return clamp01(Math.max(0, cam.y) / 4200)
 }
 
-export function drawBackdrop(ctx: CanvasRenderingContext2D, cam: Camera, t: number): void {
+export function drawBackdrop(ctx: CanvasRenderingContext2D, cam: Camera, t: number, altOverride?: number): void {
   const { w, h } = cam
-  const alt = altitudeOf(cam)
-  const dusk = clamp01((alt - 0.42) / 0.28)
-  const night = clamp01((alt - 0.68) / 0.32)
+  const alt = altOverride !== undefined ? clamp01(altOverride) : altitudeOf(cam)
+  const dusk = clamp01((alt - 0.55) / 0.25)
+  const night = clamp01((alt - 0.78) / 0.22)
 
-  const top = lerpHex(lerpHex('#7ee7ff', '#c9b6ff', dusk), '#0b1638', night)
+  const top = lerpHex(lerpHex('#9befff', '#c9b6ff', dusk), '#0b1638', night)
   const mid = lerpHex(lerpHex('#4ec6f5', '#ff8a6a', dusk), '#1a0a40', night)
-  const bot = lerpHex(lerpHex('#d4f6a8', '#ff5e8a', dusk), '#12082a', night)
+  const bot = lerpHex(lerpHex('#b8f06a', '#ff5e8a', dusk), '#12082a', night)
 
   const g = ctx.createLinearGradient(0, 0, 0, h)
   g.addColorStop(0, top)
@@ -697,7 +697,7 @@ export function drawWasabiFlash(ctx: CanvasRenderingContext2D, cam: Camera, amou
 export function drawVignette(ctx: CanvasRenderingContext2D, cam: Camera): void {
   const g = ctx.createRadialGradient(cam.w / 2, cam.h * 0.5, cam.h * 0.25, cam.w / 2, cam.h * 0.5, cam.h * 0.9)
   g.addColorStop(0, 'rgba(0,0,0,0)')
-  g.addColorStop(1, 'rgba(20, 50, 90, 0.16)')
+  g.addColorStop(1, 'rgba(30, 120, 180, 0.08)')
   ctx.fillStyle = g
   ctx.fillRect(0, 0, cam.w, cam.h)
 }

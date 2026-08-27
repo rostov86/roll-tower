@@ -301,10 +301,10 @@ export class Game {
     this.current.y = this.hangY()
     this.current.rot = Math.cos(this.swingT) * 0.08
     this.trolleyX = this.current.x
-    this.targetCamY = 36
+    this.targetCamY = 20
     this.targetCamX = 0
-    this.cameraY += (this.targetCamY - this.cameraY) * Math.min(1, dt * 2)
-    this.cameraX += (this.targetCamX - this.cameraX) * Math.min(1, dt * 2)
+    this.cameraY = 20
+    this.cameraX = 0
   }
 
   private tryLand(): void {
@@ -464,7 +464,7 @@ export class Game {
   }
 
   draw(ctx: CanvasRenderingContext2D, cam: Camera): void {
-    drawBackdrop(ctx, cam, this.time)
+    drawBackdrop(ctx, cam, this.time, this.screen === 'playing' ? undefined : 0)
     drawBoard(ctx, cam)
 
     const q = this.overlapQuality()

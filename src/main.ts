@@ -74,8 +74,8 @@ function frame(now: number): void {
 
   const viewW = window.innerWidth
   const viewH = window.innerHeight
-  const cam = game.makeCamera(viewW, viewH)
   game.update(dt)
+  const cam = game.makeCamera(viewW, viewH)
   game.draw(ctx!, cam)
 
   if (game.screen === 'playing') {
