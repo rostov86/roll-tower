@@ -22,9 +22,9 @@ import { getBest, hasSeenDropHint, setBest } from './storage'
 import type { FillingId, FloatText, Particle, Roll, RollStyle, ScreenId } from './types'
 
 const WORLD_W = 400
-const BASE_W = 76
-const ROLL_H = 50
-const HANG_GAP = 120
+const BASE_W = 74
+const ROLL_H = 60
+const HANG_GAP = 220
 const MIN_OVERLAP = 0.5
 const MISS_CENTER = 0.38
 const LEAN_COLLAPSE = 0.55
@@ -91,8 +91,8 @@ export class Game {
     this.banner = ''
     this.bannerAge = 0
     this.failTimer = 0
-    this.cameraY = 24
-    this.targetCamY = 24
+    this.cameraY = 28
+    this.targetCamY = 28
     this.cameraX = 0
     this.targetCamX = 0
     this.nextType = 0
@@ -147,7 +147,7 @@ export class Game {
     this.current = this.makeRoll(this.pivotX, this.hangY(), w, this.takeType(), this.takeStyle())
     this.phase = 'swinging'
     this.swingT = Math.random() < 0.5 ? 0 : Math.PI
-    this.trolleyX = this.current.x
+    this.trolleyX = this.pivotX
   }
 
   private swingSpeed(): number {
@@ -164,7 +164,7 @@ export class Game {
     this.time += dt
     tickToasts(dt)
     updateParticles(this.particles, dt)
-    this.shake = Math.max(0, this.shake - dt * 18)
+    this.shake = Math.max(0, this.shake - dt * 26)
     this.wasabi = Math.max(0, this.wasabi - dt * 2.4)
     if (this.bannerAge > 0) this.bannerAge += dt
     if (this.showHint && this.screen === 'playing') this.hintAge += dt
@@ -191,13 +191,13 @@ export class Game {
 
     this.cameraX = 0
     this.targetCamX = 0
-    this.cameraY += (this.targetCamY - this.cameraY) * Math.min(1, dt * 4.2)
+    this.cameraY += (this.targetCamY - this.cameraY) * Math.min(1, dt * 2.05)
 
     if (this.phase === 'settling') {
       consumeDrop()
       this.settleT += dt
       const top = this.tower[this.tower.length - 1]
-      top.squash = 1 + Math.sin(Math.min(1, this.settleT / 0.16) * Math.PI) * 0.14
+      top.squash = 1 + Math.sin(Math.min(1, this.settleT / 0.16) * Math.PI) * 0.1
       if (this.settleT >= 0.18) {
         top.squash = 1
         this.spawnCurrent()
@@ -224,18 +224,20 @@ export class Game {
 
     if (this.phase === 'swinging' && this.current) {
       this.swingT += this.swingSpeed() * dt
-      const amp = this.swingAmp()
-      const tilt = input.hasMotion ? clamp(input.gamma * 0.85, -18, 18) : 0
-      const keys = keyDir() * 12
-      this.current.x = this.pivotX + Math.sin(this.swingT) * amp + tilt + keys
-      this.current.y = this.hangY()
-      this.current.rot = Math.cos(this.swingT) * 0.1
-      this.trolleyX = this.current.x
+      const L = HANG_GAP
+      const maxTheta = Math.min(0.68, this.swingAmp() / L)
+      const tilt = input.hasMotion ? clamp(input.gamma * 0.012, -0.16, 0.16) : 0
+      const keys = keyDir() * 0.055
+      const theta = Math.sin(this.swingT) * maxTheta + tilt + keys
+      this.trolleyX = this.pivotX
+      this.current.x = this.pivotX + L * Math.sin(theta)
+      this.current.y = this.hangY() + L * (1 - Math.cos(theta))
+      this.current.rot = theta * 0.72
       if (consumeDrop()) {
         this.phase = 'dropping'
+        const omega = Math.cos(this.swingT) * maxTheta * this.swingSpeed()
         this.current.vy = 40
-        this.current.vx = Math.cos(this.swingT) * amp * this.swingSpeed() * 0.035
-        this.current.rot = 0
+        this.current.vx = L * Math.cos(theta) * omega * 0.035
         this.showHint = false
         sfxDrop()
       }
@@ -247,6 +249,7 @@ export class Game {
       this.current.vy -= 1550 * dt
       this.current.y += this.current.vy * dt
       this.current.x += this.current.vx * dt
+      this.current.rot *= Math.max(0, 1 - dt * 7)
       const prev = this.tower[this.tower.length - 1]
       const targetY = prev ? prev.y + prev.h : 0
       if (this.current.y <= targetY) {
@@ -260,11 +263,11 @@ export class Game {
 
   private followCam(): void {
     const hang =
-      this.phase === "swinging" && this.current
+      this.phase === 'swinging' && this.current
         ? this.current.y + this.current.h
         : this.hangY() + ROLL_H
     const scale = Math.min(this.viewW / WORLD_W, this.viewH / 720) * 1.08
-    this.targetCamY = hang - (0.6 * this.viewH) / Math.max(0.5, scale)
+    this.targetCamY = hang - (0.38 * this.viewH) / Math.max(0.5, scale)
     this.targetCamX = 0
     this.cameraX = 0
   }
@@ -274,7 +277,7 @@ export class Game {
       const types = FILLING_CYCLE
       let y = 0
       let x = 0
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 3; i++) {
         x += i % 2 === 0 ? -7 : 9
         this.tower.push(this.makeRoll(x, y, BASE_W - i * 2, types[i], i % 2 ? 'uramaki' : 'maki'))
         y += ROLL_H
@@ -286,14 +289,16 @@ export class Game {
       this.swingT = 0
       this.pivotX = top.x
     }
-    this.swingT += 1.8 * dt
-    this.current.x = this.pivotX + Math.sin(this.swingT) * 70
-    this.current.y = this.hangY()
-    this.current.rot = Math.cos(this.swingT) * 0.08
-    this.trolleyX = this.current.x
-    this.targetCamY = 20
+    this.swingT += 1.55 * dt
+    const L = HANG_GAP
+    const theta = Math.sin(this.swingT) * 0.28
+    this.trolleyX = this.pivotX
+    this.current.x = this.pivotX + L * Math.sin(theta)
+    this.current.y = this.hangY() + L * (1 - Math.cos(theta))
+    this.current.rot = theta * 0.7
+    this.targetCamY = 70
     this.targetCamX = 0
-    this.cameraY = 20
+    this.cameraY = 70
     this.cameraX = 0
   }
 
@@ -334,7 +339,7 @@ export class Game {
   }
 
   private plant(cur: Roll, perfect: boolean, overlapRatio: number): void {
-    cur.squash = 1.18
+    cur.squash = 1.12
     cur.rot = 0
     cur.vx = 0
     cur.vy = 0
@@ -374,7 +379,7 @@ export class Game {
     const gained = Math.round((points + perfectBonus) * (perfect ? this.multiplier : 1))
     this.score += gained
     this.popScore(cur.x, cur.y + cur.h, gained, perfect)
-    this.shake = perfect ? 12 : 7
+    this.shake = perfect ? 2.6 : 1.8
 
     checkAchievements({
       floors: this.floors,
@@ -413,7 +418,7 @@ export class Game {
     }
     this.tower = []
     this.current = null
-    this.shake = 24
+    this.shake = 3
     this.combo = 0
     this.perfectStreak = 0
     this.multiplier = 1
@@ -434,7 +439,7 @@ export class Game {
     cur.rot = (Math.random() - 0.5) * 0.4
     this.falling.push(cur)
     this.current = null
-    this.shake = 16
+    this.shake = 2.2
     this.combo = 0
     this.perfectStreak = 0
     this.multiplier = 1
@@ -510,8 +515,9 @@ export class Game {
     drawFloatTexts(ctx, cam, this.floaters)
 
     const attached = this.phase === 'swinging' && !!this.current
+    const hookX = this.current ? this.current.x : this.trolleyX
     const hookY = this.current ? this.current.y + this.current.h : this.hangY() + ROLL_H
-    drawCrane(ctx, cam, this.trolleyX, hookY, attached, this.time)
+    drawCrane(ctx, cam, this.trolleyX, hookX, hookY, attached, this.time)
 
     drawWasabiFlash(ctx, cam, this.wasabi)
     drawVignette(ctx, cam)
@@ -525,16 +531,15 @@ export class Game {
 
   makeCamera(viewW: number, viewH: number): Camera {
     const scale = Math.min(viewW / WORLD_W, viewH / 720) * 1.08
-    const ang = this.time * 28
     this.viewW = viewW
     this.viewH = viewH
     this.cameraX = 0
     this.targetCamX = 0
     return {
-      x: this.cameraX,
+      x: 0,
       y: this.cameraY,
-      shakeX: Math.sin(ang) * this.shake,
-      shakeY: Math.cos(ang * 1.3) * this.shake * 0.7,
+      shakeX: 0,
+      shakeY: this.shake,
       scale,
       w: viewW,
       h: viewH,

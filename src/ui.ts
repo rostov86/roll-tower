@@ -25,14 +25,25 @@ export function mountUi(el: HTMLElement, h: UiHandlers): void {
   el.innerHTML = `
     <div class="panel splash" id="panel-splash" data-ui>
       <div class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 16 16" width="80" height="80" shape-rendering="crispEdges">
-          <rect width="16" height="16" fill="#4ec6f5"/>
-          <rect x="2" y="2" width="12" height="12" fill="#163820"/>
-          <rect x="3" y="3" width="10" height="10" fill="#2f6340"/>
-          <rect x="4" y="4" width="8" height="8" fill="#fff6e8"/>
-          <rect x="6" y="6" width="4" height="4" fill="#ff6b4a"/>
-          <rect x="7" y="7" width="2" height="2" fill="#d4452e"/>
-          <rect x="5" y="5" width="1" height="1" fill="#ffffff"/>
+        <svg viewBox="0 0 80 80" width="88" height="88">
+          <defs>
+            <radialGradient id="sky" cx="40%" cy="30%" r="70%">
+              <stop offset="0%" stop-color="#d8f4ff"/>
+              <stop offset="100%" stop-color="#7ec8f0"/>
+            </radialGradient>
+            <radialGradient id="sal" cx="40%" cy="35%" r="65%">
+              <stop offset="0%" stop-color="#ff8a6a"/>
+              <stop offset="100%" stop-color="#d94a2e"/>
+            </radialGradient>
+          </defs>
+          <circle cx="40" cy="40" r="38" fill="url(#sky)"/>
+          <ellipse cx="42" cy="46" rx="28" ry="22" fill="rgba(40,20,10,0.16)"/>
+          <ellipse cx="40" cy="44" rx="28" ry="12" fill="#0e2416"/>
+          <rect x="12" y="28" width="56" height="16" fill="#1a3d26"/>
+          <ellipse cx="40" cy="28" rx="28" ry="13" fill="#2f6340"/>
+          <ellipse cx="40" cy="28" rx="22" ry="10" fill="#fff4e4"/>
+          <ellipse cx="40" cy="28" rx="11" ry="7" fill="url(#sal)"/>
+          <ellipse cx="34" cy="24" rx="6" ry="3" fill="#fff" opacity="0.45"/>
         </svg>
       </div>
       <div class="eyebrow">${escapeHtml(brand.name)}</div>
@@ -156,13 +167,8 @@ export function updateHud(opts: {
   hearts.innerHTML = Array.from({ length: max }, (_, i) => {
     const on = i < opts.lives
     const c = on ? '#ff3b4e' : '#8aa0b4'
-    return `<svg class="heart ${on ? 'on' : 'off'}" viewBox="0 0 7 7" width="16" height="16" shape-rendering="crispEdges" aria-hidden="true">
-      <rect x="1" y="0" width="2" height="1" fill="${c}"/>
-      <rect x="4" y="0" width="2" height="1" fill="${c}"/>
-      <rect x="0" y="1" width="7" height="3" fill="${c}"/>
-      <rect x="1" y="4" width="5" height="1" fill="${c}"/>
-      <rect x="2" y="5" width="3" height="1" fill="${c}"/>
-      <rect x="3" y="6" width="1" height="1" fill="${c}"/>
+    return `<svg class="heart ${on ? 'on' : 'off'}" viewBox="0 0 24 24" width="22" height="20" aria-hidden="true">
+      <path fill="${c}" d="M12 21s-7.2-4.6-9.6-8.6C.4 9.2 1.1 5.2 4.4 3.6 6.8 2.4 9.6 3.1 12 6c2.4-2.9 5.2-3.6 7.6-2.4 3.3 1.6 4 5.6 2 8.8C19.2 16.4 12 21 12 21z"/>
     </svg>`
   }).join('')
   const combo = byId('hud-combo')

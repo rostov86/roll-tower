@@ -18,7 +18,7 @@ export const brand = {
   backgroundColor: '#7ee7ff',
 
   /** Canvas / HUD type. */
-  font: '"Press Start 2P", "Pixelify Sans", "Courier New", monospace',
+  font: '"Nunito", "Manrope", system-ui, sans-serif',
 
   colors: {
     primary: '#ff3b4e',

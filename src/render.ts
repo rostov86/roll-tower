@@ -15,11 +15,11 @@ export const FILLINGS: Record<
   FillingId,
   { fill: string; fillDark: string; accent: string; seed: string }
 > = {
-  salmon: { fill: '#ff6b4a', fillDark: '#d4452e', accent: '#ffb199', seed: '#fff6e8' },
-  avocado: { fill: '#8fc63a', fillDark: '#5a8a1c', accent: '#d4f06c', seed: '#5a3a18' },
-  cucumber: { fill: '#4caf6a', fillDark: '#2e7d4a', accent: '#b7e3c0', seed: '#1e4d2c' },
+  salmon: { fill: '#f2744a', fillDark: '#d94a2e', accent: '#ffc4a8', seed: '#fff6e8' },
+  avocado: { fill: '#8fbf3a', fillDark: '#5c8a1c', accent: '#d4f06c', seed: '#6b3e18' },
+  cucumber: { fill: '#6fbf7a', fillDark: '#3d8a4c', accent: '#c8ecc8', seed: '#1e4d2c' },
   unagi: { fill: '#c46a28', fillDark: '#7a3c12', accent: '#ffc938', seed: '#fff0c0' },
-  tuna: { fill: '#e0233a', fillDark: '#9b1024', accent: '#ff8a9a', seed: '#fff6e8' },
+  tuna: { fill: '#d01e36', fillDark: '#8e1024', accent: '#ff8a9a', seed: '#fff6e8' },
   tamago: { fill: '#ffd24a', fillDark: '#e09a10', accent: '#fff3c4', seed: '#c41e3a' },
 }
 
@@ -36,121 +36,9 @@ export function screenToWorldX(cam: Camera, sx: number): number {
   return (sx - cam.w / 2 - cam.shakeX) / cam.scale + cam.x
 }
 
-const PX = {
-  wallA: '#f7e4c6',
-  wallB: '#f0c8a0',
-  grout: '#e2b07a',
-  wall2A: '#e4d0f0',
-  wall2B: '#cbb4dc',
-  wall3A: '#7ec8c0',
-  wall3B: '#5aa8a0',
-  brickA: '#c45a48',
-  brickB: '#a04032',
-  brickG: '#6a3028',
-  nightA: '#2a3060',
-  nightB: '#1c2248',
-  floorA: '#d4b078',
-  floorB: '#c09860',
-  cab: '#8a4e24',
-  cabDk: '#6a3818',
-  cabLt: '#c9844a',
-  wood: '#c9844a',
-  woodDk: '#8a4e24',
-  woodMd: '#a86830',
-  woodLt: '#e8b878',
-  woodHi: '#f4d4a0',
-  skyDay1: '#d8f6ff',
-  skyDay2: '#7ee7ff',
-  skyDay3: '#4ec6f5',
-  skyDay4: '#3aa8e0',
-  skyDusk1: '#ffc090',
-  skyDusk2: '#e878a0',
-  skyDusk3: '#7a6ad6',
-  skyDusk4: '#3a3888',
-  skyNight1: '#2a2870',
-  skyNight2: '#181848',
-  skyNight3: '#0c1030',
-  skyNight4: '#080818',
-  sun: '#ffe566',
-  sunHi: '#fff6b0',
-  moon: '#fff6e8',
-  moonSh: '#d0d8f0',
-  cloud: '#ffffff',
-  cloudSh: '#d5ecf8',
-  star: '#fff6e8',
-  starDim: '#ffe27a',
-  frame: '#6b4220',
-  frameLt: '#a86a34',
-  fridge: '#eef4f8',
-  fridgeDk: '#c5d4de',
-  fridgeHi: '#ffffff',
-  handle: '#ffc938',
-  stove: '#3a3a48',
-  stoveHi: '#5a5a6a',
-  burner: '#1a1a22',
-  flame: '#ff6b4a',
-  flameHi: '#ffe566',
-  plant: '#8fbf3a',
-  plantDk: '#5a8a1c',
-  pot: '#c46a28',
-  potDk: '#8a3a12',
-  soy: '#2a1810',
-  nori: '#163820',
-  rice: '#fff6e8',
-  salmon: '#ff6b4a',
-  avocado: '#8fc63a',
-  wasabi: '#8fbf3a',
-  pipe: '#8a9aa8',
-  pipeDk: '#5a6a78',
-  pipeHi: '#c8d4dc',
-  lamp: '#ffc938',
-  lampDk: '#e09a10',
-  lampGlow: '#ffe27a',
-  bldg1: '#163056',
-  bldg2: '#0e1c38',
-  bldg3: '#2a4a78',
-  winLit: '#ffc938',
-  winDim: '#4a68a0',
-  antenna: '#8a9aa8',
-}
-
-export function pixelUnit(cam: Camera): number {
-  return Math.max(4, Math.min(8, Math.round(Math.min(cam.w, cam.h) / 90) || 4))
-}
-
-function snap(n: number, P: number): number {
-  return Math.round(n / P) * P
-}
-
-function pfill(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-  color: string,
-): void {
-  ctx.fillStyle = color
-  ctx.fillRect(x, y, w, h)
-}
-
-function fillWorld(
-  ctx: CanvasRenderingContext2D,
-  cam: Camera,
-  P: number,
-  wx: number,
-  wy: number,
-  ww: number,
-  wh: number,
-  color: string,
-): void {
-  const tl = worldToScreen(cam, wx, wy + wh)
-  const br = worldToScreen(cam, wx + ww, wy)
-  const x = snap(tl.x, P)
-  const y = snap(tl.y, P)
-  const w = Math.max(P, snap(br.x, P) - x)
-  const h = Math.max(P, snap(br.y, P) - y)
-  pfill(ctx, x, y, w, h, color)
+function smooth(ctx: CanvasRenderingContext2D): void {
+  ctx.imageSmoothingEnabled = true
+  ctx.imageSmoothingQuality = 'high'
 }
 
 function viewWorld(cam: Camera): { xL: number; xR: number; yB: number; yT: number } {
@@ -168,528 +56,823 @@ function hash2(i: number, j: number): number {
   return n - Math.floor(n)
 }
 
-function fillDisk(
+function lerp(a: number, b: number, t: number): number {
+  return a + (b - a) * t
+}
+
+function hexRgb(hex: string): [number, number, number] {
+  const h = hex.replace('#', '')
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]
+}
+
+function mixHex(a: string, b: string, t: number): string {
+  const A = hexRgb(a)
+  const B = hexRgb(b)
+  const r = Math.round(lerp(A[0], B[0], t))
+  const g = Math.round(lerp(A[1], B[1], t))
+  const bl = Math.round(lerp(A[2], B[2], t))
+  return `rgb(${r},${g},${bl})`
+}
+
+function roundRect(
   ctx: CanvasRenderingContext2D,
-  P: number,
-  cx: number,
-  cy: number,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
   r: number,
-  color: string,
 ): void {
-  const gx0 = Math.floor((cx - r) / P)
-  const gx1 = Math.ceil((cx + r) / P)
-  const gy0 = Math.floor((cy - r) / P)
-  const gy1 = Math.ceil((cy + r) / P)
-  const rr = (r / P) * (r / P)
-  const ccx = cx / P
-  const ccy = cy / P
-  ctx.fillStyle = color
-  for (let gy = gy0; gy <= gy1; gy++) {
-    let run = -1
-    for (let gx = gx0; gx <= gx1 + 1; gx++) {
-      const dx = gx + 0.5 - ccx
-      const dy = gy + 0.5 - ccy
-      const inside = gx <= gx1 && dx * dx + dy * dy <= rr
-      if (inside) {
-        if (run < 0) run = gx
-      } else if (run >= 0) {
-        ctx.fillRect(run * P, gy * P, (gx - run) * P, P)
-        run = -1
-      }
-    }
-  }
+  const rr = Math.max(0, Math.min(r, Math.abs(w) / 2, Math.abs(h) / 2))
+  ctx.beginPath()
+  ctx.roundRect(x, y, w, h, rr)
 }
 
-function pixelLine(
+function fillWorld(
   ctx: CanvasRenderingContext2D,
-  P: number,
-  x0: number,
-  y0: number,
-  x1: number,
-  y1: number,
+  cam: Camera,
+  wx: number,
+  wy: number,
+  ww: number,
+  wh: number,
   color: string,
+  r = 0,
 ): void {
-  let gx0 = Math.round(x0 / P)
-  let gy0 = Math.round(y0 / P)
-  const gx1 = Math.round(x1 / P)
-  const gy1 = Math.round(y1 / P)
-  const dx = Math.abs(gx1 - gx0)
-  const dy = Math.abs(gy1 - gy0)
-  const sx = gx0 < gx1 ? 1 : -1
-  const sy = gy0 < gy1 ? 1 : -1
-  let err = dx - dy
+  const tl = worldToScreen(cam, wx, wy + wh)
+  const br = worldToScreen(cam, wx + ww, wy)
   ctx.fillStyle = color
-  while (true) {
-    ctx.fillRect(gx0 * P, gy0 * P, P, P)
-    if (gx0 === gx1 && gy0 === gy1) break
-    const e2 = err * 2
-    if (e2 > -dy) {
-      err -= dy
-      gx0 += sx
-    }
-    if (e2 < dx) {
-      err += dx
-      gy0 += sy
-    }
+  if (r > 0) {
+    roundRect(ctx, tl.x, tl.y, br.x - tl.x, br.y - tl.y, r * cam.scale)
+    ctx.fill()
+  } else {
+    ctx.fillRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y)
   }
 }
 
-function crisp(ctx: CanvasRenderingContext2D): void {
-  ctx.imageSmoothingEnabled = false
+function worldSize(cam: Camera, wx: number, wy: number, ww: number, wh: number): {
+  x: number
+  y: number
+  w: number
+  h: number
+} {
+  const tl = worldToScreen(cam, wx, wy + wh)
+  const br = worldToScreen(cam, wx + ww, wy)
+  return { x: tl.x, y: tl.y, w: br.x - tl.x, h: br.y - tl.y }
 }
 
 export function drawBackdrop(ctx: CanvasRenderingContext2D, cam: Camera, t: number): void {
-  crisp(ctx)
-  const P = pixelUnit(cam)
-  fillSky(ctx, cam, P)
-  drawStars(ctx, cam, P, t)
-  drawFarClouds(ctx, cam, P, t)
-  drawMoonOrSun(ctx, cam, P, t)
-  drawCityParallax(ctx, cam, P)
-  drawWorldWalls(ctx, cam, P)
-  drawWorldDecor(ctx, cam, P, t)
-  drawKitchen(ctx, cam, P, t)
+  smooth(ctx)
+  fillSky(ctx, cam)
+  drawStars(ctx, cam, t)
+  drawMoonOrSun(ctx, cam, t)
+  drawFarClouds(ctx, cam, t)
+  drawCityParallax(ctx, cam, t)
+  drawWorldRooms(ctx, cam, t)
+  drawKitchen(ctx, cam, t)
 }
 
-function skyPalette(camY: number): string[] {
-  if (camY < 280) return [PX.skyDay1, PX.skyDay2, PX.skyDay3, PX.skyDay4]
-  if (camY < 620) return [PX.skyDusk1, PX.skyDusk2, PX.skyDusk3, PX.skyDusk4]
-  return [PX.skyNight1, PX.skyNight2, PX.skyNight3, PX.skyNight4]
+function altitude(cam: Camera): number {
+  return cam.y
 }
 
-function fillSky(ctx: CanvasRenderingContext2D, cam: Camera, P: number): void {
-  const cols = skyPalette(cam.y)
-  const band = Math.max(P * 4, snap(cam.h / cols.length, P))
-  for (let i = 0; i < cols.length; i++) {
-    pfill(ctx, 0, i * band, cam.w, band + P, cols[i])
+function fillSky(ctx: CanvasRenderingContext2D, cam: Camera): void {
+  const y = altitude(cam)
+  const day = { a: '#c8edff', b: '#8fd4f5', c: '#5eb7e8' }
+  const dusk = { a: '#ffc8a0', b: '#e878a8', c: '#6a5cc8' }
+  const night = { a: '#2a2878', b: '#16144a', c: '#0a0a22' }
+  let top: string
+  let mid: string
+  let bot: string
+  if (y < 320) {
+    const k = Math.max(0, (y - 160) / 160)
+    top = mixHex(day.a, dusk.a, k * 0.35)
+    mid = mixHex(day.b, dusk.b, k * 0.35)
+    bot = mixHex(day.c, dusk.c, k * 0.35)
+  } else if (y < 720) {
+    const k = (y - 320) / 400
+    top = mixHex(dusk.a, night.a, k)
+    mid = mixHex(dusk.b, night.b, k)
+    bot = mixHex(dusk.c, night.c, k)
+  } else {
+    const k = Math.min(1, (y - 720) / 500)
+    top = mixHex(night.a, '#12103a', k)
+    mid = mixHex(night.b, '#0a0a20', k)
+    bot = mixHex(night.c, '#050510', k)
   }
+  const g = ctx.createLinearGradient(0, 0, 0, cam.h)
+  g.addColorStop(0, top)
+  g.addColorStop(0.45, mid)
+  g.addColorStop(1, bot)
+  ctx.fillStyle = g
+  ctx.fillRect(0, 0, cam.w, cam.h)
 }
 
-function drawStars(ctx: CanvasRenderingContext2D, cam: Camera, P: number, t: number): void {
-  const night = cam.y < 420 ? 0 : Math.min(1, (cam.y - 420) / 500)
+function drawStars(ctx: CanvasRenderingContext2D, cam: Camera, t: number): void {
+  const night = cam.y < 480 ? 0 : Math.min(1, (cam.y - 480) / 420)
   if (night <= 0) return
-  ctx.globalAlpha = 0.35 + night * 0.65
-  const oy = cam.y * 0.12
-  const cols = Math.ceil(cam.w / P) + 2
-  const rows = Math.ceil(cam.h / P) + 2
-  for (let i = 0; i < 48; i++) {
+  const oy = cam.y * 0.08
+  for (let i = 0; i < 56; i++) {
     const hx = hash2(i, 3)
     const hy = hash2(i, 9)
-    const gx = Math.floor(((hx * cols * 3 + oy * 0.02) % cols + cols) % cols)
-    const gy = Math.floor(((hy * rows * 3 - oy / P) % rows + rows) % rows)
-    const twinkle = hash2(i, Math.floor(t * 2)) > 0.35
-    pfill(ctx, gx * P, gy * P, P, P, twinkle ? PX.star : PX.starDim)
-    if (hash2(i, 11) > 0.82) {
-      pfill(ctx, gx * P - P, gy * P, P, P, PX.starDim)
-      pfill(ctx, gx * P + P, gy * P, P, P, PX.starDim)
-      pfill(ctx, gx * P, gy * P - P, P, P, PX.starDim)
-      pfill(ctx, gx * P, gy * P + P, P, P, PX.starDim)
-    }
+    const x = ((hx * cam.w * 1.2 + oy * 0.15) % cam.w + cam.w) % cam.w
+    const y = ((hy * cam.h - oy * 0.2) % cam.h + cam.h) % cam.h
+    const tw = 0.55 + 0.45 * Math.sin(t * 1.6 + i)
+    const r = 0.7 + hash2(i, 5) * 1.4
+    ctx.globalAlpha = night * tw * (0.45 + hash2(i, 7) * 0.55)
+    ctx.fillStyle = hash2(i, 11) > 0.7 ? '#ffe27a' : '#fff6e8'
+    ctx.beginPath()
+    ctx.arc(x, y, r, 0, Math.PI * 2)
+    ctx.fill()
   }
   ctx.globalAlpha = 1
 }
 
-function drawFarClouds(ctx: CanvasRenderingContext2D, cam: Camera, P: number, t: number): void {
-  if (cam.y > 900) return
-  const alpha = cam.y < 500 ? 0.9 : Math.max(0, 1 - (cam.y - 500) / 400)
+function drawMoonOrSun(ctx: CanvasRenderingContext2D, cam: Camera, t: number): void {
+  const x = cam.w * 0.78
+  const y = cam.h * 0.14 - cam.y * 0.03
+  if (cam.y < 380) {
+    const pulse = 18 + Math.sin(t * 0.7) * 3
+    const glow = ctx.createRadialGradient(x, y, 4, x, y, pulse * 3.2)
+    glow.addColorStop(0, 'rgba(255, 244, 170, 0.85)')
+    glow.addColorStop(0.35, 'rgba(255, 210, 90, 0.28)')
+    glow.addColorStop(1, 'rgba(255, 180, 80, 0)')
+    ctx.fillStyle = glow
+    ctx.beginPath()
+    ctx.arc(x, y, pulse * 3.2, 0, Math.PI * 2)
+    ctx.fill()
+    const sun = ctx.createRadialGradient(x - 4, y - 4, 2, x, y, pulse)
+    sun.addColorStop(0, '#fff6c8')
+    sun.addColorStop(0.55, '#ffe566')
+    sun.addColorStop(1, '#ffb84a')
+    ctx.fillStyle = sun
+    ctx.beginPath()
+    ctx.arc(x, y, pulse, 0, Math.PI * 2)
+    ctx.fill()
+  } else if (cam.y > 560) {
+    const k = Math.min(1, (cam.y - 560) / 200)
+    ctx.globalAlpha = k
+    const glow = ctx.createRadialGradient(x, y, 4, x, y, 42)
+    glow.addColorStop(0, 'rgba(255, 246, 232, 0.55)')
+    glow.addColorStop(1, 'rgba(200, 210, 255, 0)')
+    ctx.fillStyle = glow
+    ctx.beginPath()
+    ctx.arc(x, y, 42, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = '#f4f0e4'
+    ctx.beginPath()
+    ctx.arc(x, y, 16, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = 'rgba(180, 190, 220, 0.35)'
+    ctx.beginPath()
+    ctx.arc(x + 5, y - 4, 7, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.globalAlpha = 1
+  }
+}
+
+function drawFarClouds(ctx: CanvasRenderingContext2D, cam: Camera, t: number): void {
+  if (cam.y > 980) return
+  const alpha = cam.y < 520 ? 0.85 : Math.max(0, 1 - (cam.y - 520) / 460)
   ctx.globalAlpha = alpha
-  const drift = t * 8
-  const oy = cam.y * 0.28
-  for (let i = 0; i < 6; i++) {
-    const x = ((hash2(i, 1) * (cam.w + 160) + drift * (0.4 + hash2(i, 2)) - oy * 0.05) % (cam.w + 160)) - 80
-    const y = 20 + hash2(i, 4) * cam.h * 0.35 - (oy % (cam.h * 0.5))
-    drawPixelCloud(ctx, P, x, y, 4 + Math.floor(hash2(i, 5) * 4))
+  const drift = t * 6
+  const oy = cam.y * 0.22
+  for (let i = 0; i < 7; i++) {
+    const x =
+      ((hash2(i, 1) * (cam.w + 180) + drift * (0.35 + hash2(i, 2)) - oy * 0.04) % (cam.w + 180)) - 90
+    const y = 28 + hash2(i, 4) * cam.h * 0.32 - (oy % (cam.h * 0.45))
+    drawSoftCloud(ctx, x, y, 22 + hash2(i, 5) * 18)
   }
   ctx.globalAlpha = 1
 }
 
-function drawPixelCloud(ctx: CanvasRenderingContext2D, P: number, x: number, y: number, s: number): void {
-  const ox = snap(x, P)
-  const oy = snap(y, P)
-  pfill(ctx, ox + P * 2, oy, P * (s + 2), P, PX.cloud)
-  pfill(ctx, ox + P, oy + P, P * (s + 4), P, PX.cloud)
-  pfill(ctx, ox, oy + P * 2, P * (s + 6), P, PX.cloud)
-  pfill(ctx, ox + P, oy + P * 3, P * (s + 4), P, PX.cloudSh)
+function drawSoftCloud(ctx: CanvasRenderingContext2D, x: number, y: number, s: number): void {
+  ctx.fillStyle = 'rgba(255,255,255,0.92)'
+  ctx.beginPath()
+  ctx.ellipse(x, y, s * 1.1, s * 0.42, 0, 0, Math.PI * 2)
+  ctx.ellipse(x - s * 0.55, y + s * 0.08, s * 0.55, s * 0.32, 0, 0, Math.PI * 2)
+  ctx.ellipse(x + s * 0.5, y + s * 0.06, s * 0.62, s * 0.34, 0, 0, Math.PI * 2)
+  ctx.ellipse(x - s * 0.1, y - s * 0.22, s * 0.5, s * 0.3, 0, 0, Math.PI * 2)
+  ctx.fill()
 }
 
-function drawMoonOrSun(ctx: CanvasRenderingContext2D, cam: Camera, P: number, t: number): void {
-  const x = snap(cam.w * 0.78, P)
-  const y = snap(cam.h * 0.12 - cam.y * 0.04, P)
-  if (cam.y < 360) {
-    fillDisk(ctx, P, x, y, P * 4, PX.sun)
-    fillDisk(ctx, P, x, y, P * 2, Math.sin(t * 2) > 0 ? PX.sunHi : PX.sun)
-  } else if (cam.y > 520) {
-    fillDisk(ctx, P, x, y, P * 4, PX.moon)
-    fillDisk(ctx, P, x + P, y - P, P * 2, PX.moonSh)
-    pfill(ctx, x - P, y + P, P, P, PX.moonSh)
-  }
-}
-
-function drawCityParallax(ctx: CanvasRenderingContext2D, cam: Camera, P: number): void {
-  if (cam.y < 380) return
-  const alpha = Math.min(1, (cam.y - 380) / 280)
+function drawCityParallax(ctx: CanvasRenderingContext2D, cam: Camera, t: number): void {
+  if (cam.y < 340) return
+  const alpha = Math.min(1, (cam.y - 340) / 260)
   ctx.globalAlpha = alpha
-  const baseY = snap(cam.h * 0.62 - cam.y * 0.45 + 220, P)
+  const baseY = cam.h * 0.7 - cam.y * 0.18 + 80
   const bldg = [
-    { x: 0.02, w: 8, h: 18 },
-    { x: 0.12, w: 6, h: 12 },
-    { x: 0.22, w: 10, h: 22 },
-    { x: 0.38, w: 7, h: 16 },
-    { x: 0.5, w: 12, h: 26 },
-    { x: 0.68, w: 6, h: 14 },
-    { x: 0.78, w: 9, h: 20 },
-    { x: 0.9, w: 7, h: 11 },
+    { x: 0.02, w: 0.09, h: 0.28, hue: 0 },
+    { x: 0.12, w: 0.07, h: 0.18, hue: 1 },
+    { x: 0.2, w: 0.12, h: 0.36, hue: 2 },
+    { x: 0.34, w: 0.08, h: 0.24, hue: 0 },
+    { x: 0.44, w: 0.14, h: 0.42, hue: 1 },
+    { x: 0.6, w: 0.07, h: 0.2, hue: 2 },
+    { x: 0.69, w: 0.11, h: 0.32, hue: 0 },
+    { x: 0.82, w: 0.08, h: 0.22, hue: 1 },
+    { x: 0.91, w: 0.07, h: 0.16, hue: 2 },
   ]
+  const cols = ['#1a2a4a', '#121c38', '#243658']
   for (let i = 0; i < bldg.length; i++) {
     const b = bldg[i]
-    const x = snap(cam.w * b.x, P)
-    const h = b.h * P
+    const x = cam.w * b.x
+    const h = cam.h * b.h
     const y = baseY - h
-    const col = i % 3 === 0 ? PX.bldg2 : i % 2 === 0 ? PX.bldg1 : PX.bldg3
-    pfill(ctx, x, y, b.w * P, h, col)
-    if (i % 2 === 0) pfill(ctx, x + P * 2, y - P * 4, P, P * 4, PX.antenna)
-    for (let wy = 2; wy < b.h - 1; wy += 2) {
-      for (let wx = 1; wx < b.w - 1; wx += 2) {
-        const lit = hash2(i + wx, wy + Math.floor(cam.y / 80)) > 0.45
-        pfill(ctx, x + wx * P, y + wy * P, P, P, lit ? PX.winLit : PX.winDim)
+    const w = cam.w * b.w
+    const g = ctx.createLinearGradient(x, y, x, y + h)
+    g.addColorStop(0, mixHex(cols[b.hue], '#3a5080', 0.25))
+    g.addColorStop(1, cols[b.hue])
+    ctx.fillStyle = g
+    roundRect(ctx, x, y, w, h, 3)
+    ctx.fill()
+    if (i % 3 === 0) {
+      ctx.fillStyle = '#8aa0b8'
+      ctx.fillRect(x + w * 0.45, y - 14, 2, 14)
+    }
+    const colsN = Math.max(2, Math.floor(w / 10))
+    const rowsN = Math.max(3, Math.floor(h / 14))
+    for (let wy = 0; wy < rowsN; wy++) {
+      for (let wx = 0; wx < colsN; wx++) {
+        const lit = hash2(i * 13 + wx, wy + Math.floor(t * 0.15 + cam.y / 90)) > 0.42
+        ctx.fillStyle = lit ? 'rgba(255, 201, 56, 0.85)' : 'rgba(70, 100, 150, 0.35)'
+        ctx.fillRect(x + 4 + wx * (w / colsN), y + 8 + wy * (h / rowsN), 4, 6)
       }
     }
   }
   ctx.globalAlpha = 1
 }
 
-const TILE = 16
-
-function tileColor(tx: number, ty: number, wy: number): string | null {
-  const even = ((tx + ty) & 1) === 0
-  const wx = Math.abs(tx * TILE)
-  if (wy < -8) return even ? PX.floorA : PX.floorB
-  if (wy < 200) return even ? PX.wallA : PX.wallB
-  if (wy < 460) return even ? PX.wall2A : PX.wall2B
-  if (wy < 720) return even ? PX.wall3A : PX.wall3B
-  if (wy < 1100) {
-    if (wx < 96) return null
-    const rowShift = (ty & 1) === 0 ? tx : tx + 1
-    return (rowShift & 1) === 0 ? PX.brickA : PX.brickB
-  }
-  if (wy < 1420) {
-    if (wx < 130) return null
-    return even ? PX.nightA : PX.nightB
-  }
-  return null
-}
-
-function drawWorldWalls(ctx: CanvasRenderingContext2D, cam: Camera, P: number): void {
+function drawWorldRooms(ctx: CanvasRenderingContext2D, cam: Camera, t: number): void {
   const v = viewWorld(cam)
-  const tx0 = Math.floor(v.xL / TILE) - 1
-  const tx1 = Math.ceil(v.xR / TILE) + 1
-  const ty0 = Math.floor(v.yB / TILE) - 1
-  const ty1 = Math.ceil(v.yT / TILE) + 1
-  for (let ty = ty0; ty < ty1; ty++) {
-    const wy = ty * TILE
-    for (let tx = tx0; tx < tx1; tx++) {
-      const col = tileColor(tx, ty, wy)
-      if (!col) continue
-      fillWorld(ctx, cam, P, tx * TILE, wy, TILE, TILE, col)
-    }
-  }
-  if (v.yB < 210 && v.yT > -20) {
-    ctx.fillStyle = PX.grout
-    for (let ty = Math.max(ty0, 0); ty < Math.min(ty1, Math.ceil(200 / TILE)); ty++) {
-      const a = worldToScreen(cam, v.xL, ty * TILE)
-      const b = worldToScreen(cam, v.xR, ty * TILE)
-      pfill(ctx, snap(a.x, P), snap(a.y, P), Math.max(P, snap(b.x, P) - snap(a.x, P)), Math.max(1, P / 4), PX.grout)
-    }
-  }
-  if (v.yB < -4) {
-    fillWorld(ctx, cam, P, v.xL - 20, -36, v.xR - v.xL + 40, 28, PX.cab)
-    fillWorld(ctx, cam, P, v.xL - 20, -12, v.xR - v.xL + 40, 4, PX.cabDk)
-    fillWorld(ctx, cam, P, v.xL - 20, -36, v.xR - v.xL + 40, 3, PX.cabLt)
-    for (let k = 0; k < 6; k++) {
-      const wx = v.xL + 30 + k * 70
-      fillWorld(ctx, cam, P, wx, -30, 3, 16, PX.cabDk)
-      fillWorld(ctx, cam, P, wx + 18, -24, 8, 3, PX.handle)
-    }
+  if (v.yB < 250 && v.yT > -90) drawKitchenWall(ctx, cam, v.xL, v.xR)
+  if (v.yB < 640 && v.yT > 220) drawRestaurant(ctx, cam, t)
+  if (v.yB < 1100 && v.yT > 600) drawUpperLounge(ctx, cam, t)
+  if (v.yT > 1000) drawLanternStrings(ctx, cam, t)
+}
+
+function drawKitchenWall(ctx: CanvasRenderingContext2D, cam: Camera, xL: number, xR: number): void {
+  fillWorld(ctx, cam, xL - 40, -8, xR - xL + 80, 248, '#f3e6d4')
+  const warm = ctx.createLinearGradient(0, worldToScreen(cam, 0, 230).y, 0, worldToScreen(cam, 0, 0).y)
+  warm.addColorStop(0, 'rgba(255, 236, 210, 0.0)')
+  warm.addColorStop(1, 'rgba(255, 210, 160, 0.18)')
+  const wall = worldSize(cam, xL - 40, -8, xR - xL + 80, 248)
+  ctx.fillStyle = warm
+  ctx.fillRect(wall.x, wall.y, wall.w, wall.h)
+  drawSubwayTiles(ctx, cam, xL - 20, xR + 20, 8, 218)
+  const span = xR - xL + 80
+  fillWorld(ctx, cam, xL - 40, -72, span, 64, '#8a4e24')
+  fillWorld(ctx, cam, xL - 40, -16, span, 8, '#6b3a18')
+  const doors = 5
+  const dw = span / doors
+  for (let i = 0; i < doors; i++) {
+    const dx = xL - 30 + i * dw
+    fillWorld(ctx, cam, dx + 6, -62, dw - 16, 42, '#c9844a', 4)
+    fillWorld(ctx, cam, dx + dw * 0.55, -44, 8, 3, '#ffc938', 2)
   }
 }
 
-function drawWorldDecor(ctx: CanvasRenderingContext2D, cam: Camera, P: number, t: number): void {
-  const v = viewWorld(cam)
-  for (let floor = 1; floor <= 18; floor++) {
-    const baseY = 200 + (floor - 1) * 150
-    if (baseY > v.yT + 40 || baseY + 150 < v.yB) continue
-    drawFloorWindows(ctx, cam, P, baseY, floor)
-    drawFloorLamp(ctx, cam, P, baseY, floor, t)
-    if (floor % 2 === 0) drawFloorPipes(ctx, cam, P, baseY, floor)
-    if (floor % 3 === 0 && baseY < 700) drawFloorRail(ctx, cam, P, baseY)
-  }
-  if (v.yT > 1380 && v.yB < 1600) {
-    fillWorld(ctx, cam, P, -40, 1420, 28, 50, PX.nightB)
-    fillWorld(ctx, cam, P, -34, 1468, 16, 8, PX.pipe)
-    fillWorld(ctx, cam, P, 80, 1420, 6, 80, PX.antenna)
-    fillWorld(ctx, cam, P, 76, 1496, 14, 6, PX.pipeDk)
-  }
-}
-
-function drawFloorWindows(ctx: CanvasRenderingContext2D, cam: Camera, P: number, baseY: number, floor: number): void {
-  const xs = baseY >= 700 ? [-170, 150] : [-150, -50, 50, 150]
-  const night = floor >= 8
-  for (let i = 0; i < xs.length; i++) {
-    if (hash2(floor, i) < 0.18) continue
-    const x = xs[i]
-    const y = baseY + 40
-    fillWorld(ctx, cam, P, x, y, 44, 56, PX.frame)
-    fillWorld(ctx, cam, P, x + 4, y + 4, 36, 48, PX.frameLt)
-    const pane = night ? (hash2(floor * 3, i) > 0.4 ? PX.skyNight2 : PX.skyNight3) : floor >= 5 ? PX.skyDusk3 : PX.skyDay3
-    fillWorld(ctx, cam, P, x + 6, y + 6, 14, 20, pane)
-    fillWorld(ctx, cam, P, x + 24, y + 6, 14, 20, floor >= 5 ? PX.skyDusk2 : PX.skyDay1)
-    fillWorld(ctx, cam, P, x + 6, y + 28, 14, 20, pane)
-    fillWorld(ctx, cam, P, x + 24, y + 28, 14, 20, pane)
-    if (night && hash2(floor, i + 7) > 0.5) {
-      fillWorld(ctx, cam, P, x + 8, y + 10, 4, 4, PX.winLit)
-      fillWorld(ctx, cam, P, x + 26, y + 32, 4, 4, PX.winLit)
-    }
-    fillWorld(ctx, cam, P, x + 20, y + 4, 4, 48, PX.frameLt)
-    fillWorld(ctx, cam, P, x + 4, y + 26, 36, 4, PX.frameLt)
-    fillWorld(ctx, cam, P, x - 2, y, 48, 4, PX.woodLt)
-  }
-}
-
-function drawFloorLamp(
+function drawSubwayTiles(
   ctx: CanvasRenderingContext2D,
   cam: Camera,
-  P: number,
-  baseY: number,
-  floor: number,
+  x0: number,
+  x1: number,
+  y0: number,
+  y1: number,
+): void {
+  const tw = 30
+  const th = 15
+  const gap = 1.6
+  fillWorld(ctx, cam, x0, y0, x1 - x0, y1 - y0, '#e8d7c2')
+  const tx0 = Math.floor(x0 / tw)
+  const tx1 = Math.ceil(x1 / tw)
+  const ty0 = Math.floor(y0 / th)
+  const ty1 = Math.ceil(y1 / th)
+  for (let ty = ty0; ty < ty1; ty++) {
+    const wy = ty * th
+    if (wy < y0 - 1 || wy + th > y1 + 2) continue
+    const shift = (ty & 1) === 0 ? 0 : tw * 0.5
+    for (let tx = tx0 - 1; tx <= tx1; tx++) {
+      const wx = tx * tw + shift
+      const n = hash2(tx, ty)
+      const cream = mixHex('#fbf4ea', '#f0e2d0', 0.12 + n * 0.22)
+      fillWorld(ctx, cam, wx + gap * 0.5, wy + gap * 0.5, tw - gap, th - gap, cream, 1.4)
+    }
+  }
+}
+
+function drawRestaurant(ctx: CanvasRenderingContext2D, cam: Camera, t: number): void {
+  const v = viewWorld(cam)
+  fillWorld(ctx, cam, v.xL - 30, 230, v.xR - v.xL + 60, 50, '#d9b08a')
+  fillWorld(ctx, cam, v.xL - 30, 280, v.xR - v.xL + 60, 340, '#f0c8a8')
+  const band = worldSize(cam, v.xL - 30, 280, v.xR - v.xL + 60, 340)
+  const g = ctx.createLinearGradient(0, band.y, 0, band.y + band.h)
+  g.addColorStop(0, 'rgba(255, 180, 140, 0.12)')
+  g.addColorStop(1, 'rgba(160, 80, 90, 0.16)')
+  ctx.fillStyle = g
+  ctx.fillRect(band.x, band.y, band.w, band.h)
+  fillWorld(ctx, cam, v.xL - 30, 268, v.xR - v.xL + 60, 10, '#b88858')
+  const xs = [-150, -40, 70, 160]
+  for (let i = 0; i < xs.length; i++) {
+    drawRoundWindow(ctx, cam, xs[i], 330, i >= 2)
+    drawPaperLantern(ctx, cam, xs[i] + 22, 470, i % 3, t)
+  }
+  fillWorld(ctx, cam, v.xL - 20, 610, v.xR - v.xL + 40, 8, '#8a5a32')
+}
+
+function drawUpperLounge(ctx: CanvasRenderingContext2D, cam: Camera, t: number): void {
+  const v = viewWorld(cam)
+  const y0 = 620
+  const h = 300
+  if (v.yT < y0 || v.yB > y0 + h) return
+  fillWorld(ctx, cam, v.xL - 40, y0, 36, h, '#3a2a58')
+  fillWorld(ctx, cam, v.xR - 0, y0, 40, h, '#3a2a58')
+  const openings = [-160, -20, 120]
+  for (let i = 0; i < openings.length; i++) {
+    const x = openings[i]
+    fillWorld(ctx, cam, x, y0 + 40, 70, 110, '#24183a', 6)
+    const pane = worldSize(cam, x + 6, y0 + 48, 58, 94)
+    const g = ctx.createLinearGradient(pane.x, pane.y, pane.x, pane.y + pane.h)
+    g.addColorStop(0, 'rgba(255, 160, 110, 0.45)')
+    g.addColorStop(1, 'rgba(80, 70, 160, 0.5)')
+    ctx.fillStyle = g
+    roundRect(ctx, pane.x, pane.y, pane.w, pane.h, 8)
+    ctx.fill()
+    drawPaperLantern(ctx, cam, x + 28, y0 + 200, i, t)
+  }
+}
+
+function drawRoundWindow(ctx: CanvasRenderingContext2D, cam: Camera, x: number, y: number, dusk: boolean): void {
+  const s = worldSize(cam, x, y, 56, 70)
+  ctx.fillStyle = '#6b4220'
+  roundRect(ctx, s.x, s.y, s.w, s.h, 10)
+  ctx.fill()
+  const pane = worldSize(cam, x + 5, y + 6, 46, 58)
+  const g = ctx.createLinearGradient(pane.x, pane.y, pane.x, pane.y + pane.h)
+  if (dusk) {
+    g.addColorStop(0, '#f0a070')
+    g.addColorStop(1, '#7a68c8')
+  } else {
+    g.addColorStop(0, '#c8ecff')
+    g.addColorStop(1, '#7ec8f0')
+  }
+  ctx.fillStyle = g
+  roundRect(ctx, pane.x, pane.y, pane.w, pane.h, 7)
+  ctx.fill()
+  ctx.strokeStyle = 'rgba(255,255,255,0.35)'
+  ctx.lineWidth = 1.5
+  ctx.beginPath()
+  ctx.moveTo(pane.x + pane.w * 0.5, pane.y + 4)
+  ctx.lineTo(pane.x + pane.w * 0.5, pane.y + pane.h - 4)
+  ctx.moveTo(pane.x + 4, pane.y + pane.h * 0.5)
+  ctx.lineTo(pane.x + pane.w - 4, pane.y + pane.h * 0.5)
+  ctx.stroke()
+}
+
+function drawPaperLantern(
+  ctx: CanvasRenderingContext2D,
+  cam: Camera,
+  x: number,
+  y: number,
+  kind: number,
   t: number,
 ): void {
-  const x = floor % 2 === 0 ? -170 : 170
-  const y = baseY + 120
-  fillWorld(ctx, cam, P, x, y, 4, 24, PX.pipeDk)
-  fillWorld(ctx, cam, P, x - 8, y, 20, 6, PX.lampDk)
-  const glow = Math.sin(t * 3 + floor) > -0.4
-  fillWorld(ctx, cam, P, x - 6, y + 6, 16, 10, glow ? PX.lamp : PX.lampDk)
-  if (glow) fillWorld(ctx, cam, P, x - 2, y + 8, 8, 4, PX.lampGlow)
+  const flicker = 0.85 + 0.15 * Math.sin(t * 3 + kind)
+  const p = worldToScreen(cam, x, y)
+  const s = cam.scale
+  ctx.save()
+  ctx.globalAlpha = 0.55 * flicker
+  const glow = ctx.createRadialGradient(p.x, p.y, 2, p.x, p.y, 28 * s)
+  const cols = ['#ffb24a', '#ff6d5a', '#ffd24a']
+  glow.addColorStop(0, cols[kind % 3])
+  glow.addColorStop(1, 'rgba(255, 160, 60, 0)')
+  ctx.fillStyle = glow
+  ctx.beginPath()
+  ctx.arc(p.x, p.y, 28 * s, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.globalAlpha = 1
+  ctx.fillStyle = '#5a3a22'
+  ctx.fillRect(p.x - 1, p.y - 22 * s, 2, 10 * s)
+  const body = ctx.createRadialGradient(p.x - 4 * s, p.y, 2, p.x, p.y, 12 * s)
+  body.addColorStop(0, '#ffe7a0')
+  body.addColorStop(0.45, cols[kind % 3])
+  body.addColorStop(1, '#c45a28')
+  ctx.fillStyle = body
+  ctx.beginPath()
+  ctx.ellipse(p.x, p.y + 2 * s, 11 * s, 13 * s, 0, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.fillStyle = '#6b4220'
+  ctx.fillRect(p.x - 7 * s, p.y - 12 * s, 14 * s, 3 * s)
+  ctx.fillRect(p.x - 6 * s, p.y + 13 * s, 12 * s, 3 * s)
+  ctx.restore()
 }
 
-function drawFloorPipes(ctx: CanvasRenderingContext2D, cam: Camera, P: number, baseY: number, floor: number): void {
-  const x = floor % 4 === 0 ? -190 : 186
-  fillWorld(ctx, cam, P, x, baseY + 10, 8, 130, PX.pipe)
-  fillWorld(ctx, cam, P, x + 2, baseY + 10, 2, 130, PX.pipeHi)
-  fillWorld(ctx, cam, P, x - 4, baseY + 40, 16, 8, PX.pipeDk)
-  fillWorld(ctx, cam, P, x - 4, baseY + 90, 16, 8, PX.pipeDk)
-}
-
-function drawFloorRail(ctx: CanvasRenderingContext2D, cam: Camera, P: number, baseY: number): void {
+function drawLanternStrings(ctx: CanvasRenderingContext2D, cam: Camera, t: number): void {
   const v = viewWorld(cam)
-  fillWorld(ctx, cam, P, v.xL - 10, baseY + 8, v.xR - v.xL + 20, 6, PX.woodDk)
-  fillWorld(ctx, cam, P, v.xL - 10, baseY + 12, v.xR - v.xL + 20, 3, PX.wood)
-}
-
-function drawKitchen(ctx: CanvasRenderingContext2D, cam: Camera, P: number, t: number): void {
-  const v = viewWorld(cam)
-  if (v.yB > 220 || v.yT < -40) return
-
-  drawKitchenWindow(ctx, cam, P, t)
-  drawShelves(ctx, cam, P)
-  drawFridge(ctx, cam, P)
-  drawStove(ctx, cam, P, t)
-  drawPlantPot(ctx, cam, P)
-  drawClock(ctx, cam, P)
-}
-
-function drawKitchenWindow(ctx: CanvasRenderingContext2D, cam: Camera, P: number, t: number): void {
-  const x = -120
-  const y = 70
-  const w = 88
-  const h = 72
-  fillWorld(ctx, cam, P, x, y, w, h, PX.frame)
-  fillWorld(ctx, cam, P, x + 4, y + 4, w - 8, h - 8, PX.frameLt)
-  fillWorld(ctx, cam, P, x + 8, y + 8, 32, 26, PX.skyDay2)
-  fillWorld(ctx, cam, P, x + 48, y + 8, 32, 26, PX.skyDay1)
-  fillWorld(ctx, cam, P, x + 8, y + 38, 32, 26, PX.skyDay3)
-  fillWorld(ctx, cam, P, x + 48, y + 38, 32, 26, PX.skyDay3)
-  fillWorld(ctx, cam, P, x + 62, y + 12, 12, 12, PX.sun)
-  fillWorld(ctx, cam, P, x + 66, y + 16, 4, 4, Math.sin(t * 2.2) > 0 ? PX.sunHi : PX.sun)
-  fillWorld(ctx, cam, P, x + 12, y + 16, 16, 6, PX.cloud)
-  fillWorld(ctx, cam, P, x + 16, y + 12, 10, 4, PX.cloud)
-  fillWorld(ctx, cam, P, x + 40, y + 4, 8, h - 8, PX.frameLt)
-  fillWorld(ctx, cam, P, x + 4, y + 34, w - 8, 8, PX.frameLt)
-  fillWorld(ctx, cam, P, x - 4, y, w + 8, 6, PX.woodLt)
-  fillWorld(ctx, cam, P, x - 4, y + h, w + 8, 6, PX.wood)
-  fillWorld(ctx, cam, P, x + 8, y + h + 6, 10, 10, PX.pot)
-  fillWorld(ctx, cam, P, x + 10, y + h + 14, 6, 4, PX.plant)
-  fillWorld(ctx, cam, P, x + 6, y + h + 18, 4, 6, PX.plantDk)
-  fillWorld(ctx, cam, P, x + 14, y + h + 18, 4, 8, PX.plant)
-}
-
-function drawShelves(ctx: CanvasRenderingContext2D, cam: Camera, P: number): void {
-  const sx = -190
-  const ys = [36, 88, 140]
-  for (let i = 0; i < ys.length; i++) {
-    const y = ys[i]
-    fillWorld(ctx, cam, P, sx, y, 56, 6, PX.wood)
-    fillWorld(ctx, cam, P, sx, y, 56, 2, PX.woodDk)
-    fillWorld(ctx, cam, P, sx, y + 4, 4, 8, PX.woodDk)
-    fillWorld(ctx, cam, P, sx + 52, y + 4, 4, 8, PX.woodDk)
+  if (v.yT < 1080) return
+  for (let i = 0; i < 8; i++) {
+    const x = v.xL + 30 + i * 48
+    drawPaperLantern(ctx, cam, x, 1180 + (i % 3) * 18, i % 3, t)
   }
-  fillWorld(ctx, cam, P, sx + 6, 42, 12, 18, PX.soy)
-  fillWorld(ctx, cam, P, sx + 6, 58, 12, 4, PX.nori)
-  fillWorld(ctx, cam, P, sx + 24, 42, 12, 18, PX.salmon)
-  fillWorld(ctx, cam, P, sx + 24, 58, 12, 4, PX.woodLt)
-  fillWorld(ctx, cam, P, sx + 40, 46, 10, 14, PX.avocado)
-  fillWorld(ctx, cam, P, sx + 8, 94, 14, 16, PX.wasabi)
-  fillWorld(ctx, cam, P, sx + 8, 108, 14, 4, PX.woodHi)
-  fillWorld(ctx, cam, P, sx + 28, 96, 16, 14, PX.pot)
-  fillWorld(ctx, cam, P, sx + 32, 108, 8, 4, PX.potDk)
-  fillWorld(ctx, cam, P, sx + 10, 148, 18, 14, '#e8f0f4')
-  fillWorld(ctx, cam, P, sx + 14, 158, 10, 4, PX.handle)
-  fillWorld(ctx, cam, P, sx + 34, 146, 12, 16, PX.nori)
 }
 
-function drawFridge(ctx: CanvasRenderingContext2D, cam: Camera, P: number): void {
-  const x = 132
-  const y = 0
-  fillWorld(ctx, cam, P, x + 4, y + 4, 48, 132, 'rgba(90,60,30,0.18)')
-  fillWorld(ctx, cam, P, x, y, 48, 136, PX.fridgeDk)
-  fillWorld(ctx, cam, P, x + 4, y + 4, 40, 128, PX.fridge)
-  fillWorld(ctx, cam, P, x + 4, y + 120, 40, 6, PX.fridgeHi)
-  fillWorld(ctx, cam, P, x + 4, y + 88, 40, 4, PX.fridgeDk)
-  fillWorld(ctx, cam, P, x + 8, y + 20, 6, 16, PX.handle)
-  fillWorld(ctx, cam, P, x + 8, y + 56, 6, 24, PX.handle)
-  fillWorld(ctx, cam, P, x + 22, y + 100, 8, 8, PX.salmon)
-  fillWorld(ctx, cam, P, x + 32, y + 96, 8, 8, PX.avocado)
-  fillWorld(ctx, cam, P, x + 8, y, 8, 6, PX.woodDk)
-  fillWorld(ctx, cam, P, x + 32, y, 8, 6, PX.woodDk)
+function drawKitchen(ctx: CanvasRenderingContext2D, cam: Camera, t: number): void {
+  const v = viewWorld(cam)
+  if (v.yB > 250 || v.yT < -50) return
+  drawKitchenWindow(ctx, cam, t)
+  drawShelves(ctx, cam)
+  drawFridge(ctx, cam)
+  drawStove(ctx, cam, t)
+  drawPlantPot(ctx, cam)
+  drawClock(ctx, cam)
 }
 
-function drawStove(ctx: CanvasRenderingContext2D, cam: Camera, P: number, t: number): void {
-  const x = 64
-  const y = 0
-  fillWorld(ctx, cam, P, x, y, 60, 44, PX.stove)
-  fillWorld(ctx, cam, P, x + 4, y + 4, 52, 8, PX.stoveHi)
-  fillWorld(ctx, cam, P, x + 8, y + 16, 16, 16, PX.burner)
-  fillWorld(ctx, cam, P, x + 36, y + 16, 16, 16, PX.burner)
-  fillWorld(ctx, cam, P, x + 12, y + 20, 8, 8, PX.stoveHi)
-  fillWorld(ctx, cam, P, x + 40, y + 20, 8, 8, PX.stoveHi)
-  const flicker = Math.sin(t * 14) > 0
-  fillWorld(ctx, cam, P, x + 14, y + 22, 4, 4, flicker ? PX.flameHi : PX.flame)
-  fillWorld(ctx, cam, P, x + 42, y + 22, 4, 4, flicker ? PX.flame : PX.flameHi)
-  fillWorld(ctx, cam, P, x + 10, y + 32, 20, 18, PX.pot)
-  fillWorld(ctx, cam, P, x + 14, y + 46, 12, 4, PX.potDk)
-  fillWorld(ctx, cam, P, x + 6, y + 38, 6, 4, PX.potDk)
-  fillWorld(ctx, cam, P, x + 28, y + 38, 6, 4, PX.potDk)
-  fillWorld(ctx, cam, P, x + 4, y + 8, 8, 4, PX.handle)
-  fillWorld(ctx, cam, P, x + 4, y, 10, 6, PX.woodDk)
-  fillWorld(ctx, cam, P, x + 46, y, 10, 6, PX.woodDk)
+function drawKitchenWindow(ctx: CanvasRenderingContext2D, cam: Camera, t: number): void {
+  const x = -126
+  const y = 72
+  const w = 108
+  const h = 86
+  fillWorld(ctx, cam, x - 6, y - 6, w + 12, h + 18, '#8a5a32', 4)
+  fillWorld(ctx, cam, x, y, w, h, '#6b4220', 3)
+  const pane = worldSize(cam, x + 7, y + 7, w - 14, h - 14)
+  const g = ctx.createLinearGradient(pane.x, pane.y, pane.x, pane.y + pane.h)
+  g.addColorStop(0, '#d8f4ff')
+  g.addColorStop(0.45, '#9edff8')
+  g.addColorStop(1, '#7ec8f0')
+  ctx.fillStyle = g
+  roundRect(ctx, pane.x, pane.y, pane.w, pane.h, 4)
+  ctx.fill()
+  const sunX = pane.x + pane.w * 0.72
+  const sunY = pane.y + pane.h * 0.28
+  const sg = ctx.createRadialGradient(sunX, sunY, 2, sunX, sunY, 16)
+  sg.addColorStop(0, '#fff6c0')
+  sg.addColorStop(0.5, '#ffe566')
+  sg.addColorStop(1, 'rgba(255, 200, 80, 0)')
+  ctx.fillStyle = sg
+  ctx.beginPath()
+  ctx.arc(sunX, sunY, 16 + Math.sin(t) * 1.2, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.fillStyle = 'rgba(255,255,255,0.9)'
+  ctx.beginPath()
+  ctx.ellipse(pane.x + pane.w * 0.28, pane.y + pane.h * 0.32, 16, 7, 0, 0, Math.PI * 2)
+  ctx.ellipse(pane.x + pane.w * 0.38, pane.y + pane.h * 0.28, 10, 6, 0, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.strokeStyle = '#8a5a32'
+  ctx.lineWidth = 3
+  ctx.beginPath()
+  ctx.moveTo(pane.x + pane.w * 0.5, pane.y)
+  ctx.lineTo(pane.x + pane.w * 0.5, pane.y + pane.h)
+  ctx.moveTo(pane.x, pane.y + pane.h * 0.5)
+  ctx.lineTo(pane.x + pane.w, pane.y + pane.h * 0.5)
+  ctx.stroke()
+  fillWorld(ctx, cam, x - 8, y + h, w + 16, 8, '#c9844a', 2)
+  fillWorld(ctx, cam, x + 10, y + h + 8, 12, 10, '#c46a28', 2)
+  fillWorld(ctx, cam, x + 12, y + h + 16, 8, 14, '#5a8a1c', 3)
 }
 
-function drawPlantPot(ctx: CanvasRenderingContext2D, cam: Camera, P: number): void {
-  const x = 118
-  const y = 0
-  fillWorld(ctx, cam, P, x, y, 16, 12, PX.pot)
-  fillWorld(ctx, cam, P, x + 2, y + 10, 12, 4, PX.potDk)
-  fillWorld(ctx, cam, P, x + 6, y + 12, 4, 16, PX.plantDk)
-  fillWorld(ctx, cam, P, x + 2, y + 20, 6, 12, PX.plant)
-  fillWorld(ctx, cam, P, x + 8, y + 22, 6, 14, PX.plant)
-  fillWorld(ctx, cam, P, x + 4, y + 28, 4, 8, PX.plantDk)
+function drawShelves(ctx: CanvasRenderingContext2D, cam: Camera): void {
+  const sx = -196
+  const ys = [40, 96, 152]
+  for (const y of ys) {
+    fillWorld(ctx, cam, sx, y, 58, 7, '#c9844a', 2)
+    fillWorld(ctx, cam, sx, y, 58, 2.2, '#8a4e24', 1)
+  }
+  fillWorld(ctx, cam, sx + 6, 47, 12, 22, '#2a1810', 3)
+  fillWorld(ctx, cam, sx + 24, 47, 12, 22, '#f2744a', 3)
+  fillWorld(ctx, cam, sx + 42, 52, 10, 16, '#8fbf3a', 4)
+  fillWorld(ctx, cam, sx + 8, 103, 14, 18, '#8fbf3a', 4)
+  fillWorld(ctx, cam, sx + 28, 105, 18, 16, '#c46a28', 3)
+  fillWorld(ctx, cam, sx + 10, 159, 16, 16, '#eef4f8', 3)
+  fillWorld(ctx, cam, sx + 34, 158, 14, 18, '#1b3a22', 3)
 }
 
-function drawClock(ctx: CanvasRenderingContext2D, cam: Camera, P: number): void {
-  fillWorld(ctx, cam, P, 20, 150, 24, 24, PX.frame)
-  fillWorld(ctx, cam, P, 24, 154, 16, 16, PX.rice)
-  fillWorld(ctx, cam, P, 30, 158, 4, 8, PX.soy)
-  fillWorld(ctx, cam, P, 30, 162, 8, 4, PX.salmon)
+function drawFridge(ctx: CanvasRenderingContext2D, cam: Camera): void {
+  const x = 128
+  const y = 4
+  fillWorld(ctx, cam, x + 6, y - 4, 50, 138, 'rgba(90,60,30,0.16)', 8)
+  fillWorld(ctx, cam, x, y, 48, 136, '#d5e0e8', 10)
+  fillWorld(ctx, cam, x + 3, y + 3, 42, 130, '#f4f8fb', 8)
+  fillWorld(ctx, cam, x + 3, y + 86, 42, 3, '#c5d4de')
+  fillWorld(ctx, cam, x + 7, y + 18, 5, 18, '#ffc938', 2)
+  fillWorld(ctx, cam, x + 7, y + 52, 5, 26, '#ffc938', 2)
+  fillWorld(ctx, cam, x + 20, y + 104, 10, 10, '#f2744a', 3)
+  fillWorld(ctx, cam, x + 32, y + 100, 10, 10, '#8fbf3a', 3)
+}
+
+function drawStove(ctx: CanvasRenderingContext2D, cam: Camera, t: number): void {
+  const x = 58
+  const y = 2
+  fillWorld(ctx, cam, x, y, 62, 46, '#3a3a48', 8)
+  fillWorld(ctx, cam, x + 5, y + 5, 52, 8, '#5a5a6a', 3)
+  const flicker = 0.65 + 0.35 * Math.sin(t * 9)
+  const b1 = worldToScreen(cam, x + 16, y + 28)
+  const b2 = worldToScreen(cam, x + 44, y + 28)
+  const s = cam.scale
+  for (const b of [b1, b2]) {
+    ctx.fillStyle = '#1a1a22'
+    ctx.beginPath()
+    ctx.arc(b.x, b.y, 8 * s, 0, Math.PI * 2)
+    ctx.fill()
+    const flame = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, 6 * s)
+    flame.addColorStop(0, `rgba(255, 230, 102, ${flicker})`)
+    flame.addColorStop(0.5, `rgba(255, 107, 74, ${flicker * 0.8})`)
+    flame.addColorStop(1, 'rgba(255, 80, 40, 0)')
+    ctx.fillStyle = flame
+    ctx.beginPath()
+    ctx.arc(b.x, b.y, 6 * s, 0, Math.PI * 2)
+    ctx.fill()
+  }
+  fillWorld(ctx, cam, x + 8, y + 30, 22, 18, '#c46a28', 4)
+  fillWorld(ctx, cam, x + 4, y + 8, 8, 4, '#ffc938', 2)
+}
+
+function drawPlantPot(ctx: CanvasRenderingContext2D, cam: Camera): void {
+  const x = 112
+  fillWorld(ctx, cam, x, 2, 16, 14, '#c46a28', 3)
+  const p = worldToScreen(cam, x + 8, 22)
+  const s = cam.scale
+  ctx.fillStyle = '#5a8a1c'
+  ctx.beginPath()
+  ctx.ellipse(p.x, p.y, 5 * s, 10 * s, -0.4, 0, Math.PI * 2)
+  ctx.ellipse(p.x + 5 * s, p.y + 2 * s, 5 * s, 11 * s, 0.35, 0, Math.PI * 2)
+  ctx.ellipse(p.x - 2 * s, p.y + 6 * s, 4 * s, 8 * s, 0.1, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.fillStyle = '#8fbf3a'
+  ctx.beginPath()
+  ctx.ellipse(p.x + 2 * s, p.y + 4 * s, 4 * s, 8 * s, 0.2, 0, Math.PI * 2)
+  ctx.fill()
+}
+
+function drawClock(ctx: CanvasRenderingContext2D, cam: Camera): void {
+  const p = worldToScreen(cam, 22, 168)
+  const s = cam.scale
+  ctx.fillStyle = '#6b4220'
+  ctx.beginPath()
+  ctx.arc(p.x, p.y, 14 * s, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.fillStyle = '#fff6e8'
+  ctx.beginPath()
+  ctx.arc(p.x, p.y, 11 * s, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.strokeStyle = '#163056'
+  ctx.lineWidth = 1.6 * s
+  ctx.lineCap = 'round'
+  ctx.beginPath()
+  ctx.moveTo(p.x, p.y)
+  ctx.lineTo(p.x, p.y - 7 * s)
+  ctx.moveTo(p.x, p.y)
+  ctx.lineTo(p.x + 5 * s, p.y + 2 * s)
+  ctx.stroke()
 }
 
 export function drawBoard(ctx: CanvasRenderingContext2D, cam: Camera): void {
-  crisp(ctx)
-  const P = pixelUnit(cam)
+  smooth(ctx)
   const origin = worldToScreen(cam, 0, 0)
-  const y0 = snap(origin.y, P)
-  const x0 = snap(cam.shakeX, P) - P * 4
-  const w = cam.w + P * 8
-  const h = Math.max(P * 5, snap(20 * cam.scale, P))
-  pfill(ctx, x0, y0 + h, w, P * 2, 'rgba(40, 20, 10, 0.28)')
-  const bands = [PX.woodDk, PX.woodMd, PX.wood, PX.woodLt, PX.wood, PX.woodMd, PX.woodDk]
-  const rows = Math.max(1, Math.round(h / P))
-  for (let i = 0; i < rows; i++) {
-    pfill(ctx, x0, y0 + i * P, w, P, bands[i % bands.length])
+  const y0 = origin.y
+  const h = Math.max(18, 22 * cam.scale)
+  const g = ctx.createLinearGradient(0, y0, 0, y0 + h)
+  g.addColorStop(0, '#f0d2a0')
+  g.addColorStop(0.18, '#e0b878')
+  g.addColorStop(0.5, '#c9844a')
+  g.addColorStop(0.82, '#a86830')
+  g.addColorStop(1, '#6b3a18')
+  ctx.fillStyle = g
+  ctx.fillRect(0, y0, cam.w, h)
+  ctx.fillStyle = 'rgba(255, 244, 220, 0.55)'
+  ctx.fillRect(0, y0, cam.w, 2.4)
+  ctx.fillStyle = 'rgba(80, 40, 16, 0.18)'
+  for (let i = 0; i < 7; i++) {
+    const yy = y0 + 4 + i * (h / 7)
+    ctx.fillRect(0, yy, cam.w, 0.8)
   }
-  ctx.fillStyle = PX.woodHi
-  const cells = Math.ceil(w / P)
-  for (let i = 0; i < cells; i += 5) {
-    ctx.fillRect(x0 + i * P, y0 + P, P, P)
-  }
-  pfill(ctx, x0, y0, w, P, PX.woodHi)
-  pfill(ctx, x0, y0 + h - P, w, P, PX.woodDk)
+  ctx.fillStyle = 'rgba(40, 20, 10, 0.22)'
+  ctx.fillRect(0, y0 + h, cam.w, 10)
+  const shade = ctx.createLinearGradient(0, y0 + h, 0, y0 + h + 28)
+  shade.addColorStop(0, 'rgba(40, 20, 10, 0.18)')
+  shade.addColorStop(1, 'rgba(40, 20, 10, 0)')
+  ctx.fillStyle = shade
+  ctx.fillRect(0, y0 + h, cam.w, 28)
 }
 
 export function drawRoll(ctx: CanvasRenderingContext2D, cam: Camera, roll: Roll): void {
-  crisp(ctx)
-  const P = pixelUnit(cam)
+  smooth(ctx)
   const squash = roll.squash
   const bw = roll.w * squash
   const bh = roll.h / squash
   const bottom = worldToScreen(cam, roll.x, roll.y)
-  const cx = snap(bottom.x, P)
-  const r = Math.max(P * 4, (bw / 2) * cam.scale)
-  const bodyH = Math.max(P * 4, bh * cam.scale)
-  const by = snap(bottom.y, P)
-  const topCy = snap(bottom.y - bodyH, P)
+  const cx = bottom.x
+  const by = bottom.y
+  const rx = Math.max(8, (bw / 2) * cam.scale)
+  const ry = rx * 0.5
+  const bodyH = Math.max(ry * 1.35, bh * cam.scale * 0.82)
+  const topY = by - bodyH
   const pal = FILLINGS[roll.type]
   const maki = roll.style === 'maki'
-  const nori = '#163820'
+  const nori = '#1a3d26'
   const noriHi = '#2f6340'
-  const noriLo = '#0c1c12'
-  const rice = '#fff4e0'
+  const noriLo = '#0e2416'
+  const rice = '#fff4e4'
+  const riceSh = '#e8d5b8'
 
   ctx.save()
   ctx.globalAlpha *= roll.opacity
-
-  fillDisk(ctx, P, cx + P, by + P, r * 0.92, 'rgba(40, 24, 12, 0.28)')
-  fillDisk(ctx, P, cx, by, r, noriLo)
-  const bodyTop = Math.min(by, topCy)
-  const bodyBot = Math.max(by, topCy)
-  pfill(ctx, snap(cx - r, P), bodyTop, Math.max(P, snap(r * 2, P)), Math.max(P, bodyBot - bodyTop), maki ? nori : rice)
-  fillDisk(ctx, P, cx, topCy, r, maki ? nori : rice)
-  if (maki) {
-    fillDisk(ctx, P, cx, topCy, r - P, noriHi)
-    fillDisk(ctx, P, cx, topCy, Math.max(P * 2, r * 0.72), rice)
-  } else {
-    fillDisk(ctx, P, cx, topCy, Math.max(P * 2, r * 0.78), nori)
-    fillDisk(ctx, P, cx, topCy, Math.max(P * 2, r * 0.62), rice)
+  if (roll.rot) {
+    const pivY = (by + topY) / 2
+    ctx.translate(cx, pivY)
+    ctx.rotate(roll.rot)
+    ctx.translate(-cx, -pivY)
   }
-  drawPixelFilling(ctx, P, cx, topCy, r, roll.type, pal)
-  pfill(ctx, cx - P * 2, topCy - r + P, P * 2, P, 'rgba(255,255,255,0.35)')
+
+  ctx.fillStyle = 'rgba(50, 28, 12, 0.22)'
+  ctx.beginPath()
+  ctx.ellipse(cx + 3, by + 4, rx * 0.92, ry * 0.55, 0, 0, Math.PI * 2)
+  ctx.fill()
+
+  ctx.fillStyle = maki ? noriLo : riceSh
+  ctx.beginPath()
+  ctx.ellipse(cx, by, rx, ry, 0, 0, Math.PI * 2)
+  ctx.fill()
+
+  const side = ctx.createLinearGradient(cx - rx, 0, cx + rx, 0)
+  if (maki) {
+    side.addColorStop(0, noriLo)
+    side.addColorStop(0.22, nori)
+    side.addColorStop(0.5, noriHi)
+    side.addColorStop(0.8, nori)
+    side.addColorStop(1, noriLo)
+  } else {
+    side.addColorStop(0, riceSh)
+    side.addColorStop(0.35, rice)
+    side.addColorStop(0.7, '#fffaf0')
+    side.addColorStop(1, riceSh)
+  }
+  ctx.fillStyle = side
+  ctx.fillRect(cx - rx, topY, rx * 2, bodyH)
+
+  ctx.save()
+  ctx.beginPath()
+  ctx.rect(cx - rx, topY, rx * 2, bodyH)
+  ctx.clip()
+  if (maki) {
+    ctx.strokeStyle = 'rgba(8, 20, 10, 0.35)'
+    ctx.lineWidth = 1
+    for (let i = -3; i <= 3; i++) {
+      ctx.beginPath()
+      ctx.moveTo(cx + i * (rx / 3.2), topY)
+      ctx.lineTo(cx + i * (rx / 3.2), by)
+      ctx.stroke()
+    }
+  } else {
+    for (let i = 0; i < 18; i++) {
+      const sx = cx - rx * 0.86 + hash2(i, 2) * rx * 1.7
+      const sy = topY + hash2(i, 4) * bodyH
+      ctx.fillStyle = hash2(i, 6) > 0.45 ? '#3a2a18' : '#f4efe0'
+      ctx.beginPath()
+      ctx.ellipse(sx, sy, 1.3, 0.7, hash2(i, 8) * 2, 0, Math.PI * 2)
+      ctx.fill()
+    }
+  }
+  ctx.restore()
+
+  ctx.fillStyle = maki ? nori : rice
+  ctx.beginPath()
+  ctx.ellipse(cx, topY, rx, ry, 0, 0, Math.PI * 2)
+  ctx.fill()
+
+  if (maki) {
+    ctx.fillStyle = noriHi
+    ctx.beginPath()
+    ctx.ellipse(cx, topY, rx * 0.92, ry * 0.92, 0, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = rice
+    ctx.beginPath()
+    ctx.ellipse(cx, topY, rx * 0.78, ry * 0.78, 0, 0, Math.PI * 2)
+    ctx.fill()
+  } else {
+    ctx.fillStyle = nori
+    ctx.beginPath()
+    ctx.ellipse(cx, topY, rx * 0.78, ry * 0.78, 0, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = rice
+    ctx.beginPath()
+    ctx.ellipse(cx, topY, rx * 0.64, ry * 0.64, 0, 0, Math.PI * 2)
+    ctx.fill()
+  }
+
+  ctx.fillStyle = 'rgba(255,255,255,0.55)'
+  ctx.beginPath()
+  ctx.ellipse(cx - rx * 0.28, topY - ry * 0.28, rx * 0.22, ry * 0.12, -0.5, 0, Math.PI * 2)
+  ctx.fill()
+
+  drawFillingArt(ctx, cx, topY, rx, ry, roll.type, pal)
 
   ctx.restore()
 }
 
-function drawPixelFilling(
+function drawFillingArt(
   ctx: CanvasRenderingContext2D,
-  P: number,
   cx: number,
   cy: number,
-  r: number,
+  rx: number,
+  ry: number,
   type: FillingId,
   pal: (typeof FILLINGS)[FillingId],
 ): void {
-  const fr = Math.max(P * 2, r * 0.38)
-  fillDisk(ctx, P, cx, cy, fr, pal.fill)
-  if (type === 'salmon' || type === 'tuna' || type === 'unagi') {
-    pfill(ctx, snap(cx - P, P), snap(cy - P, P), P * 3, P, pal.fillDark)
-    pfill(ctx, snap(cx - P * 2, P), snap(cy, P), P * 5, P, pal.accent)
+  const frx = rx * 0.46
+  const fry = ry * 0.46
+  ctx.save()
+  ctx.beginPath()
+  ctx.ellipse(cx, cy, frx * 1.15, fry * 1.15, 0, 0, Math.PI * 2)
+  ctx.clip()
+
+  if (type === 'salmon') {
+    for (let i = -1; i <= 1; i++) {
+      ctx.fillStyle = i === 0 ? pal.fill : pal.fillDark
+      ctx.beginPath()
+      ctx.ellipse(cx + i * frx * 0.42, cy + i * fry * 0.12, frx * 0.55, fry * 0.95, -0.45 + i * 0.12, 0, Math.PI * 2)
+      ctx.fill()
+    }
+    ctx.strokeStyle = pal.accent
+    ctx.globalAlpha = 0.65
+    ctx.lineWidth = 1.2
+    ctx.beginPath()
+    ctx.moveTo(cx - frx * 0.5, cy - fry * 0.15)
+    ctx.quadraticCurveTo(cx, cy - fry * 0.4, cx + frx * 0.55, cy)
+    ctx.stroke()
+    ctx.globalAlpha = 1
   } else if (type === 'avocado') {
-    fillDisk(ctx, P, cx + P, cy, Math.max(P, fr * 0.35), pal.seed)
+    ctx.fillStyle = pal.fill
+    ctx.beginPath()
+    ctx.ellipse(cx, cy, frx, fry, 0.2, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = pal.accent
+    ctx.beginPath()
+    ctx.ellipse(cx - frx * 0.15, cy - fry * 0.1, frx * 0.55, fry * 0.55, 0.2, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = pal.seed
+    ctx.beginPath()
+    ctx.ellipse(cx + frx * 0.12, cy + fry * 0.08, frx * 0.28, fry * 0.28, 0, 0, Math.PI * 2)
+    ctx.fill()
+  } else if (type === 'tuna') {
+    ctx.fillStyle = pal.fillDark
+    ctx.beginPath()
+    ctx.ellipse(cx, cy, frx, fry, -0.3, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = pal.fill
+    ctx.beginPath()
+    ctx.ellipse(cx - frx * 0.08, cy - fry * 0.08, frx * 0.72, fry * 0.7, -0.3, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.strokeStyle = pal.accent
+    ctx.globalAlpha = 0.5
+    ctx.lineWidth = 1
+    for (let i = -2; i <= 2; i++) {
+      ctx.beginPath()
+      ctx.moveTo(cx - frx, cy + i * fry * 0.28)
+      ctx.lineTo(cx + frx, cy + i * fry * 0.18)
+      ctx.stroke()
+    }
+    ctx.globalAlpha = 1
   } else if (type === 'cucumber') {
-    pfill(ctx, snap(cx - P, P), snap(cy - P, P), P, P, pal.seed)
-    pfill(ctx, snap(cx + P, P), snap(cy, P), P, P, pal.seed)
-    pfill(ctx, snap(cx, P), snap(cy + P, P), P, P, pal.seed)
+    ctx.fillStyle = pal.fill
+    ctx.beginPath()
+    ctx.ellipse(cx, cy, frx, fry, 0, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = pal.accent
+    ctx.beginPath()
+    ctx.ellipse(cx, cy, frx * 0.62, fry * 0.62, 0, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = pal.seed
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2
+      ctx.beginPath()
+      ctx.ellipse(cx + Math.cos(a) * frx * 0.28, cy + Math.sin(a) * fry * 0.28, 1.4, 1.1, 0, 0, Math.PI * 2)
+      ctx.fill()
+    }
+  } else if (type === 'unagi') {
+    ctx.fillStyle = pal.fillDark
+    ctx.beginPath()
+    ctx.ellipse(cx, cy, frx, fry, 0.4, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = pal.fill
+    ctx.beginPath()
+    ctx.ellipse(cx, cy, frx * 0.72, fry * 0.55, 0.4, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.strokeStyle = pal.accent
+    ctx.globalAlpha = 0.7
+    ctx.lineWidth = 1.4
+    ctx.beginPath()
+    ctx.moveTo(cx - frx * 0.6, cy)
+    ctx.quadraticCurveTo(cx, cy - fry * 0.5, cx + frx * 0.6, cy)
+    ctx.stroke()
+    ctx.globalAlpha = 1
   } else {
-    pfill(ctx, snap(cx - P, P), snap(cy - P, P), P * 2, P, pal.accent)
-    pfill(ctx, snap(cx + P, P), cy, P, P, pal.fillDark)
+    ctx.fillStyle = pal.fill
+    roundRect(ctx, cx - frx * 0.85, cy - fry * 0.7, frx * 1.7, fry * 1.4, 3)
+    ctx.fill()
+    ctx.fillStyle = pal.accent
+    ctx.fillRect(cx - frx * 0.85, cy - fry * 0.18, frx * 1.7, fry * 0.22)
+    ctx.fillStyle = pal.seed
+    ctx.fillRect(cx - frx * 0.15, cy - fry * 0.55, frx * 0.3, fry * 0.35)
   }
+
+  ctx.restore()
 }
 
 export function drawGhost(
@@ -700,140 +883,209 @@ export function drawGhost(
   w: number,
   quality: 'perfect' | 'good' | 'bad',
 ): void {
-  crisp(ctx)
-  const P = pixelUnit(cam)
+  smooth(ctx)
   const p = worldToScreen(cam, x, y)
-  const r = Math.max(P * 3, (w / 2) * cam.scale)
+  const rx = Math.max(8, (w / 2) * cam.scale)
+  const ry = rx * 0.5
   const color = quality === 'perfect' ? '#ffc938' : quality === 'good' ? '#8fbf3a' : '#ff3b4e'
-  const cx = snap(p.x, P)
-  const cy = snap(p.y, P)
-  const cells = Math.max(8, Math.round((r * 2) / P))
+  ctx.save()
+  ctx.globalAlpha = 0.55
+  ctx.strokeStyle = color
+  ctx.lineWidth = 2.4
+  ctx.setLineDash([6, 5])
+  ctx.beginPath()
+  ctx.ellipse(p.x, p.y, rx, ry, 0, 0, Math.PI * 2)
+  ctx.stroke()
+  ctx.globalAlpha = 0.12
   ctx.fillStyle = color
-  ctx.globalAlpha = 0.7
-  for (let i = 0; i < cells; i++) {
-    if (i % 2 === 1) continue
-    const a = (i / cells) * Math.PI * 2
-    const gx = snap(cx + Math.cos(a) * r, P)
-    const gy = snap(cy + Math.sin(a) * r, P)
-    ctx.fillRect(gx, gy, P, P)
-  }
-  ctx.globalAlpha = 1
+  ctx.fill()
+  ctx.restore()
 }
 
 export function drawCrane(
   ctx: CanvasRenderingContext2D,
   cam: Camera,
   trolleyWorldX: number,
+  hookWorldX: number,
   hookWorldY: number,
   attached: boolean,
   t: number,
 ): void {
-  crisp(ctx)
-  const P = pixelUnit(cam)
-  const hook = worldToScreen(cam, trolleyWorldX, hookWorldY)
-  const tx = snap(hook.x, P)
-  const sway = snap(Math.sin(t * 1.3) * P, P)
-  const boomY = P * 7
-  const mastX = P * 2
+  smooth(ctx)
+  const boomY = 32
+  const mastW = 14
   const yellow = '#ffc938'
   const yellowDk = '#e09a10'
   const red = '#ff3b4e'
   const redDk = '#d01e36'
+  const tx = cam.w / 2 + (trolleyWorldX - cam.x) * cam.scale + cam.shakeX
+  const hook = worldToScreen(cam, hookWorldX, hookWorldY)
 
-  pfill(ctx, mastX, P, P * 3, boomY + P, yellow)
-  pfill(ctx, mastX, P, P, boomY + P, yellowDk)
-  for (let i = 0; i < 6; i++) pfill(ctx, mastX, P * 2 + i * P * 2, P * 3, P, red)
-  pfill(ctx, mastX - P, boomY - P * 4, P * 5, P * 3, red)
-  pfill(ctx, mastX + P, boomY - P * 3, P * 2, P * 2, '#b8f0ff')
-  pfill(ctx, mastX + P * 2, boomY - P, cam.w - P * 6, P * 2, yellow)
-  pfill(ctx, mastX + P * 2, boomY, cam.w - P * 6, P, red)
-  pfill(ctx, tx - P * 2 + sway, boomY - P * 2, P * 5, P * 3, red)
-  pfill(ctx, tx - P + sway, boomY - P, P * 3, P, yellow)
-  pfill(ctx, tx + sway, boomY - P * 2, P, P, redDk)
+  const mastG = ctx.createLinearGradient(8, 0, 8 + mastW, 0)
+  mastG.addColorStop(0, yellowDk)
+  mastG.addColorStop(0.4, yellow)
+  mastG.addColorStop(1, yellowDk)
+  ctx.fillStyle = mastG
+  roundRect(ctx, 8, 8, mastW, boomY + 10, 3)
+  ctx.fill()
+  ctx.fillStyle = red
+  for (let i = 0; i < 4; i++) ctx.fillRect(8, 14 + i * 10, mastW, 4)
+  roundRect(ctx, 4, boomY - 6, 22, 16, 4)
+  ctx.fillStyle = red
+  ctx.fill()
+  ctx.fillStyle = '#b8f0ff'
+  roundRect(ctx, 8, boomY - 2, 12, 8, 2)
+  ctx.fill()
 
-  const hookY = attached ? snap(hook.y, P) : boomY + P * 8
-  pixelLine(ctx, P, tx + sway, boomY + P, tx, hookY, '#5a4a3a')
-  pfill(ctx, tx - P * 2, hookY, P * 4, P, red)
-  pfill(ctx, tx - P * 2, hookY, P, P * 2, redDk)
-  pfill(ctx, tx + P, hookY, P, P * 2, redDk)
-  pfill(ctx, tx, hookY, P, P, yellow)
+  const beamG = ctx.createLinearGradient(0, boomY, 0, boomY + 16)
+  beamG.addColorStop(0, '#ffe27a')
+  beamG.addColorStop(0.45, yellow)
+  beamG.addColorStop(1, yellowDk)
+  ctx.fillStyle = beamG
+  roundRect(ctx, 24, boomY, cam.w - 36, 14, 4)
+  ctx.fill()
+  ctx.fillStyle = red
+  ctx.fillRect(24, boomY + 12, cam.w - 36, 4)
+
+  ctx.fillStyle = redDk
+  roundRect(ctx, tx - 16, boomY - 8, 32, 22, 5)
+  ctx.fill()
+  ctx.fillStyle = yellow
+  roundRect(ctx, tx - 12, boomY - 4, 24, 14, 3)
+  ctx.fill()
+  ctx.fillStyle = '#3a3a48'
+  ctx.beginPath()
+  ctx.arc(tx, boomY + 10, 5, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.fillStyle = '#8a9aa8'
+  ctx.beginPath()
+  ctx.arc(tx, boomY + 10, 2.4, 0, Math.PI * 2)
+  ctx.fill()
+
+  const ropeTop = boomY + 14
+  const ropeBot = attached ? hook.y : ropeTop + 52 + Math.sin(t * 1.1) * 2
+  const ropeX1 = tx
+  const ropeX2 = attached ? hook.x : tx + Math.sin(t * 1.1) * 3
+  ctx.strokeStyle = '#5c4033'
+  ctx.lineWidth = 2.15
+  ctx.lineCap = 'round'
+  ctx.beginPath()
+  ctx.moveTo(ropeX1, ropeTop)
+  ctx.lineTo(ropeX2, ropeBot)
+  ctx.stroke()
+  ctx.strokeStyle = 'rgba(232, 200, 160, 0.45)'
+  ctx.lineWidth = 0.9
+  ctx.beginPath()
+  ctx.moveTo(ropeX1 + 1.1, ropeTop)
+  ctx.lineTo(ropeX2 + 1.1, ropeBot)
+  ctx.stroke()
+
+  ctx.fillStyle = red
+  roundRect(ctx, ropeX2 - 8, ropeBot - 2, 16, 7, 2)
+  ctx.fill()
+  ctx.strokeStyle = redDk
+  ctx.lineWidth = 2.2
+  ctx.beginPath()
+  ctx.arc(ropeX2 - 4, ropeBot + 8, 5, -0.2, Math.PI * 0.9)
+  ctx.stroke()
+  ctx.beginPath()
+  ctx.arc(ropeX2 + 4, ropeBot + 8, 5, Math.PI * 0.1, Math.PI * 1.2)
+  ctx.stroke()
 }
 
 export function drawParticles(ctx: CanvasRenderingContext2D, cam: Camera, particles: Particle[]): void {
-  crisp(ctx)
-  const P = pixelUnit(cam)
+  smooth(ctx)
   for (const p of particles) {
     const s = worldToScreen(cam, p.x, p.y)
     const a = Math.max(0, p.life / p.maxLife)
-    const sz = Math.max(P, snap(p.size, P))
-    const x = snap(s.x, P)
-    const y = snap(s.y, P)
+    ctx.save()
     ctx.globalAlpha = a
+    ctx.translate(s.x, s.y)
+    ctx.rotate(p.rot)
     if (p.kind === 'rice') {
-      pfill(ctx, x, y, sz, P, '#fff6e8')
+      ctx.fillStyle = '#fff6e8'
+      ctx.beginPath()
+      ctx.ellipse(0, 0, p.size * 0.7, p.size * 0.4, 0, 0, Math.PI * 2)
+      ctx.fill()
     } else if (p.kind === 'star') {
-      pfill(ctx, x, y, P, P, brand.colors.goldLight)
-      pfill(ctx, x - P, y, P, P, brand.colors.gold)
-      pfill(ctx, x + P, y, P, P, brand.colors.gold)
-      pfill(ctx, x, y - P, P, P, brand.colors.gold)
-      pfill(ctx, x, y + P, P, P, brand.colors.gold)
+      ctx.fillStyle = brand.colors.goldLight
+      starPath(ctx, 0, 0, p.size * 0.45, p.size * 0.9, 5)
+      ctx.fill()
     } else if (p.kind === 'spark') {
-      pfill(ctx, x, y, sz, sz, brand.colors.goldLight)
+      ctx.fillStyle = brand.colors.goldLight
+      ctx.beginPath()
+      ctx.arc(0, 0, p.size * 0.45, 0, Math.PI * 2)
+      ctx.fill()
     } else {
-      pfill(ctx, x, y, sz, sz, brand.colors.wasabi)
+      ctx.fillStyle = brand.colors.wasabi
+      ctx.beginPath()
+      ctx.arc(0, 0, p.size * 0.5, 0, Math.PI * 2)
+      ctx.fill()
     }
-    ctx.globalAlpha = 1
+    ctx.restore()
   }
 }
 
-function pixelFont(px: number): string {
-  const s = Math.max(8, Math.round(px / 8) * 8)
-  return `${s}px ${brand.font}`
+function starPath(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  inner: number,
+  outer: number,
+  n: number,
+): void {
+  ctx.beginPath()
+  for (let i = 0; i < n * 2; i++) {
+    const r = i % 2 === 0 ? outer : inner
+    const a = (i * Math.PI) / n - Math.PI / 2
+    const px = x + Math.cos(a) * r
+    const py = y + Math.sin(a) * r
+    if (i === 0) ctx.moveTo(px, py)
+    else ctx.lineTo(px, py)
+  }
+  ctx.closePath()
+}
+
+function uiFont(px: number, weight = 800): string {
+  return `${weight} ${Math.round(px)}px ${brand.font}`
 }
 
 export function drawFloatTexts(ctx: CanvasRenderingContext2D, cam: Camera, items: FloatText[]): void {
-  crisp(ctx)
+  smooth(ctx)
   for (const f of items) {
     const p = worldToScreen(cam, f.x, f.y)
     const t = f.age / f.maxAge
     const alpha = t < 0.15 ? t / 0.15 : t > 0.7 ? (1 - t) / 0.3 : 1
     ctx.save()
     ctx.globalAlpha = Math.max(0, alpha)
-    ctx.font = pixelFont(16 * f.scale)
+    ctx.font = uiFont(18 * f.scale)
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
-    ctx.fillStyle = '#163056'
-    ctx.fillText(f.text, Math.round(p.x) + 2, Math.round(p.y - t * 36) + 2)
+    ctx.fillStyle = 'rgba(22, 48, 86, 0.28)'
+    ctx.fillText(f.text, p.x + 1.5, p.y - t * 40 + 1.5)
     ctx.fillStyle = f.color
-    ctx.fillText(f.text, Math.round(p.x), Math.round(p.y - t * 36))
+    ctx.fillText(f.text, p.x, p.y - t * 40)
     ctx.restore()
   }
 }
 
 export function drawWasabiFlash(ctx: CanvasRenderingContext2D, cam: Camera, amount: number): void {
   if (amount <= 0) return
-  crisp(ctx)
-  const P = pixelUnit(cam)
-  ctx.globalAlpha = amount * 0.18
-  ctx.fillStyle = brand.colors.goldLight
-  const cols = Math.ceil(cam.w / P)
-  const rows = Math.ceil(cam.h / P)
-  for (let y = 0; y < rows; y++) {
-    for (let x = 0; x < cols; x++) {
-      if (((x + y) & 1) === 0) ctx.fillRect(x * P, y * P, P, P)
-    }
-  }
-  ctx.globalAlpha = 1
+  smooth(ctx)
+  const g = ctx.createRadialGradient(cam.w / 2, cam.h * 0.45, 20, cam.w / 2, cam.h * 0.45, cam.w * 0.7)
+  g.addColorStop(0, `rgba(255, 226, 122, ${amount * 0.22})`)
+  g.addColorStop(1, `rgba(255, 201, 56, 0)`)
+  ctx.fillStyle = g
+  ctx.fillRect(0, 0, cam.w, cam.h)
 }
 
 export function drawVignette(ctx: CanvasRenderingContext2D, cam: Camera): void {
-  crisp(ctx)
-  const P = pixelUnit(cam)
-  ctx.fillStyle = 'rgba(20, 16, 40, 0.35)'
-  pfill(ctx, 0, 0, cam.w, P, 'rgba(20,16,40,0.25)')
-  pfill(ctx, 0, cam.h - P, cam.w, P, 'rgba(20,16,40,0.25)')
-  pfill(ctx, 0, 0, P, cam.h, 'rgba(20,16,40,0.25)')
-  pfill(ctx, cam.w - P, 0, P, cam.h, 'rgba(20,16,40,0.25)')
+  smooth(ctx)
+  const g = ctx.createRadialGradient(cam.w / 2, cam.h * 0.48, cam.h * 0.28, cam.w / 2, cam.h * 0.5, cam.h * 0.82)
+  g.addColorStop(0, 'rgba(20, 16, 40, 0)')
+  g.addColorStop(1, 'rgba(20, 16, 40, 0.22)')
+  ctx.fillStyle = g
+  ctx.fillRect(0, 0, cam.w, cam.h)
 }
 
 export function drawComboBanner(
@@ -843,39 +1095,48 @@ export function drawComboBanner(
   age: number,
 ): void {
   if (age <= 0 || age > 1.05) return
-  crisp(ctx)
-  const P = pixelUnit(cam)
-  const t = age / 1.05
-  const alpha = t < 0.12 ? t / 0.12 : t > 0.7 ? (1 - t) / 0.3 : 1
-  const y = snap(cam.h * 0.28, P)
+  smooth(ctx)
+  const tt = age / 1.05
+  const alpha = tt < 0.12 ? tt / 0.12 : tt > 0.7 ? (1 - tt) / 0.3 : 1
+  const y = cam.h * 0.27
   ctx.save()
   ctx.globalAlpha = alpha
-  ctx.font = pixelFont(Math.max(16, cam.w * 0.05))
+  ctx.font = uiFont(Math.max(22, cam.w * 0.055))
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  const tw = Math.min(cam.w - P * 4, Math.max(P * 20, ctx.measureText(text).width + P * 6))
-  const th = P * 6
-  const x = snap(cam.w / 2 - tw / 2, P)
-  pfill(ctx, x, y - th / 2, tw, th, '#163056')
-  pfill(ctx, x + P, y - th / 2 + P, tw - P * 2, th - P * 2, '#ffc938')
+  const tw = Math.min(cam.w - 32, Math.max(160, ctx.measureText(text).width + 48))
+  const th = 48
+  const x = cam.w / 2 - tw / 2
+  ctx.fillStyle = 'rgba(22, 48, 86, 0.18)'
+  roundRect(ctx, x, y - th / 2 + 3, tw, th, 24)
+  ctx.fill()
+  const g = ctx.createLinearGradient(x, y - th / 2, x, y + th / 2)
+  g.addColorStop(0, '#ffe27a')
+  g.addColorStop(1, '#ffc938')
+  ctx.fillStyle = g
+  roundRect(ctx, x, y - th / 2, tw, th, 24)
+  ctx.fill()
   ctx.fillStyle = '#163056'
-  ctx.fillText(text, Math.round(cam.w / 2), y + 1)
+  ctx.fillText(text, cam.w / 2, y + 1)
   ctx.restore()
 }
 
 export function drawTapHint(ctx: CanvasRenderingContext2D, cam: Camera, text: string, age: number): void {
-  crisp(ctx)
-  const P = pixelUnit(cam)
-  const pulse = Math.sin(age * 6) > 0
-  const y = snap(cam.h * 0.48, P)
-  ctx.font = pixelFont(8)
+  smooth(ctx)
+  const pulse = 0.88 + 0.12 * Math.sin(age * 4)
+  const y = cam.h * 0.5
+  ctx.save()
+  ctx.globalAlpha = pulse
+  ctx.font = uiFont(15, 700)
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  const tw = Math.min(cam.w - P * 4, ctx.measureText(text).width + P * 6)
-  const x = snap(cam.w / 2 - tw / 2, P)
-  const th = P * 5
-  pfill(ctx, x, y - th / 2, tw, th, '#163056')
-  pfill(ctx, x + P, y - th / 2 + P, tw - P * 2, th - P * 2, pulse ? '#fff6e8' : '#ffe27a')
-  ctx.fillStyle = '#163056'
-  ctx.fillText(text, Math.round(cam.w / 2), y + 1)
+  const tw = Math.min(cam.w - 40, ctx.measureText(text).width + 36)
+  const x = cam.w / 2 - tw / 2
+  const th = 40
+  ctx.fillStyle = 'rgba(22, 48, 86, 0.82)'
+  roundRect(ctx, x, y - th / 2, tw, th, 20)
+  ctx.fill()
+  ctx.fillStyle = '#fff6e8'
+  ctx.fillText(text, cam.w / 2, y + 1)
+  ctx.restore()
 }

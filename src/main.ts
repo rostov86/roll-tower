@@ -26,7 +26,8 @@ function resize(): void {
   canvas.style.width = `${w}px`
   canvas.style.height = `${h}px`
   ctx!.setTransform(dpr, 0, 0, dpr, 0, 0)
-  ctx!.imageSmoothingEnabled = false
+  ctx!.imageSmoothingEnabled = true
+  ctx!.imageSmoothingQuality = 'high'
 }
 
 bindInput(canvas)
@@ -76,7 +77,8 @@ function frame(now: number): void {
   const viewW = window.innerWidth
   const viewH = window.innerHeight
   game.update(dt)
-  ctx!.imageSmoothingEnabled = false
+  ctx!.imageSmoothingEnabled = true
+  ctx!.imageSmoothingQuality = 'high'
   const cam = game.makeCamera(viewW, viewH)
   game.draw(ctx!, cam)
 
