@@ -1,7 +1,7 @@
 import type { Particle } from './types'
 
 export function spawnRice(particles: Particle[], x: number, y: number, w: number): void {
-  const n = 14 + Math.floor(Math.random() * 8)
+  const n = 12 + Math.floor(Math.random() * 8)
   for (let i = 0; i < n; i++) {
     const a = Math.random() * Math.PI * 2
     const sp = 40 + Math.random() * 90
@@ -18,15 +18,35 @@ export function spawnRice(particles: Particle[], x: number, y: number, w: number
       kind: 'rice',
     })
   }
-  for (let i = 0; i < 8; i++) {
+}
+
+export function spawnSparkles(particles: Particle[], x: number, y: number, w: number): void {
+  spawnRice(particles, x, y, w)
+  for (let i = 0; i < 22; i++) {
+    const a = (i / 22) * Math.PI * 2 + Math.random() * 0.25
+    const sp = 90 + Math.random() * 150
+    particles.push({
+      x: x + (Math.random() - 0.5) * w * 0.35,
+      y,
+      vx: Math.cos(a) * sp,
+      vy: Math.sin(a) * sp * 0.7 + 70,
+      life: 0.5 + Math.random() * 0.4,
+      maxLife: 0.8,
+      size: 3.5 + Math.random() * 4.5,
+      rot: a,
+      vr: (Math.random() - 0.5) * 12,
+      kind: 'star',
+    })
+  }
+  for (let i = 0; i < 10; i++) {
     particles.push({
       x: x + (Math.random() - 0.5) * w * 0.5,
       y,
-      vx: (Math.random() - 0.5) * 60,
-      vy: 30 + Math.random() * 70,
-      life: 0.3 + Math.random() * 0.25,
-      maxLife: 0.5,
-      size: 3 + Math.random() * 4,
+      vx: (Math.random() - 0.5) * 70,
+      vy: 40 + Math.random() * 90,
+      life: 0.3 + Math.random() * 0.3,
+      maxLife: 0.55,
+      size: 3 + Math.random() * 5,
       rot: 0,
       vr: 0,
       kind: 'spark',
@@ -48,6 +68,24 @@ export function spawnWasabi(particles: Particle[], x: number, y: number): void {
       rot: 0,
       vr: 0,
       kind: 'wasabi',
+    })
+  }
+}
+
+export function spawnMissDust(particles: Particle[], x: number, y: number): void {
+  for (let i = 0; i < 10; i++) {
+    const a = Math.random() * Math.PI * 2
+    particles.push({
+      x,
+      y,
+      vx: Math.cos(a) * (30 + Math.random() * 50),
+      vy: 20 + Math.random() * 40,
+      life: 0.3 + Math.random() * 0.25,
+      maxLife: 0.5,
+      size: 2 + Math.random() * 3,
+      rot: 0,
+      vr: 0,
+      kind: 'spark',
     })
   }
 }

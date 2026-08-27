@@ -1,13 +1,13 @@
 {
   "name": "Башня роллов — СушиМаркет",
   "short_name": "Башня роллов",
-  "description": "Собери башню. Съешь заказ.",
+  "description": "Качай кран. Тапай. Строй небоскрёб из роллов.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#12080a",
-  "theme_color": "#12080a",
+  "background_color": "#7ee7ff",
+  "theme_color": "#4ec6f5",
   "lang": "ru",
   "icons": [
     {

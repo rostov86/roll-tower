@@ -27,10 +27,10 @@ export function saveUnlocked(ids: Set<AchievementId>): void {
   localStorage.setItem(k('achievements'), JSON.stringify([...ids]))
 }
 
-export function hasSeenTiltHint(): boolean {
-  return localStorage.getItem(k('tiltHint')) === '1'
+export function hasSeenDropHint(): boolean {
+  return localStorage.getItem(k('dropHint')) === '1'
 }
 
-export function markTiltHintSeen(): void {
-  localStorage.setItem(k('tiltHint'), '1')
+export function markDropHintSeen(): void {
+  localStorage.setItem(k('dropHint'), '1')
 }

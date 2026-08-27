@@ -12,6 +12,7 @@ export const ACHIEVEMENT_ORDER: AchievementId[] = [
   'combo5',
   'gourmet',
   'knifeMaster',
+  'survivor',
 ]
 
 let unlocked = getUnlocked()
@@ -58,6 +59,7 @@ export function checkAchievements(opts: {
   perfects: number
   perfectStreak: number
   score: number
+  lives: number
 }): void {
   if (opts.floors >= 1) unlock('firstFloor')
   if (opts.floors >= 10) unlock('floors10')
@@ -67,4 +69,5 @@ export function checkAchievements(opts: {
   if (opts.combo >= 5) unlock('combo5')
   if (opts.score >= brand.gourmetScore) unlock('gourmet')
   if (opts.perfectStreak >= 10) unlock('knifeMaster')
+  if (opts.floors >= 20 && opts.lives >= 3) unlock('survivor')
 }

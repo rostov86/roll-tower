@@ -1,7 +1,7 @@
 import { applyBrandTheme, brand } from './brand'
 import { enableAudio } from './audio'
 import { Game } from './game'
-import { bindInput, input, requestMotionPermission } from './input'
+import { bindInput, requestMotionPermission } from './input'
 import { mountUi, setScreen, showGameOver, syncToasts, updateHud } from './ui'
 import './style.css'
 
@@ -75,7 +75,7 @@ function frame(now: number): void {
   const viewW = window.innerWidth
   const viewH = window.innerHeight
   const cam = game.makeCamera(viewW, viewH)
-  game.update(dt, cam, input.pointerX)
+  game.update(dt)
   game.draw(ctx!, cam)
 
   if (game.screen === 'playing') {
@@ -84,11 +84,18 @@ function frame(now: number): void {
       floors: game.floors,
       combo: game.combo,
       multiplier: game.multiplier,
+      lives: game.lives,
+      maxLives: 3,
     })
   }
 
   if (game.screen === 'gameover' && lastScreen !== 'gameover') {
-    showGameOver({ score: game.score, best: game.best, floors: game.floors })
+    showGameOver({
+      score: game.score,
+      best: game.best,
+      floors: game.floors,
+      livesLost: game.livesLost,
+    })
     setScreen('gameover')
   }
   lastScreen = game.screen === 'achievements' ? lastScreen : game.screen
@@ -99,7 +106,6 @@ function frame(now: number): void {
 
 requestAnimationFrame(frame)
 
-// Register service worker for offline PWA.
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     void navigator.serviceWorker.register('./sw.js').catch(() => {

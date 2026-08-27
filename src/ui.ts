@@ -7,7 +7,7 @@ import {
 } from './achievements'
 import { sfxUi } from './audio'
 import type { AchievementId, ScreenId } from './types'
-import { hasSeenTiltHint, markTiltHintSeen } from './storage'
+import { hasSeenDropHint, markDropHintSeen } from './storage'
 
 export interface UiHandlers {
   onPlay: () => void
@@ -17,29 +17,28 @@ export interface UiHandlers {
   onShare: () => void
 }
 
-let root: HTMLElement
 let handlers: UiHandlers
-let tiltShown = false
+let hintShown = false
 
 export function mountUi(el: HTMLElement, h: UiHandlers): void {
-  root = el
   handlers = h
-  root.innerHTML = `
+  el.innerHTML = `
     <div class="panel splash" id="panel-splash" data-ui>
       <div class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 96 96" width="88" height="88">
+        <svg viewBox="0 0 96 96" width="92" height="92">
           <defs>
             <radialGradient id="g1" cx="35%" cy="30%" r="70%">
-              <stop offset="0%" stop-color="#f0d060"/>
-              <stop offset="55%" stop-color="#c41e3a"/>
-              <stop offset="100%" stop-color="#8b1428"/>
+              <stop offset="0%" stop-color="#ffe27a"/>
+              <stop offset="55%" stop-color="#ff3b4e"/>
+              <stop offset="100%" stop-color="#d01e36"/>
             </radialGradient>
           </defs>
-          <circle cx="48" cy="48" r="44" fill="url(#g1)"/>
-          <ellipse cx="48" cy="48" rx="30" ry="30" fill="#14301a"/>
-          <ellipse cx="48" cy="48" rx="22" ry="22" fill="#f3ead8"/>
-          <ellipse cx="48" cy="48" rx="12" ry="12" fill="#e85d4c"/>
-          <ellipse cx="48" cy="48" rx="4" ry="7" fill="#c44536" transform="rotate(20 48 48)"/>
+          <circle cx="48" cy="48" r="46" fill="#7ee7ff"/>
+          <circle cx="48" cy="48" r="40" fill="url(#g1)"/>
+          <ellipse cx="48" cy="48" rx="28" ry="28" fill="#1b3a22"/>
+          <ellipse cx="48" cy="48" rx="20" ry="20" fill="#fff6e8"/>
+          <ellipse cx="48" cy="48" rx="11" ry="11" fill="#ff6b4a"/>
+          <ellipse cx="48" cy="48" rx="4" ry="7" fill="#d4452e" transform="rotate(20 48 48)"/>
         </svg>
       </div>
       <div class="eyebrow">${escapeHtml(brand.name)}</div>
@@ -47,16 +46,17 @@ export function mountUi(el: HTMLElement, h: UiHandlers): void {
       <p class="slogan">${escapeHtml(brand.slogan)}</p>
       <button class="btn primary" id="btn-play" type="button">${escapeHtml(brand.copy.play)}</button>
       <button class="btn ghost" id="btn-ach" type="button">${escapeHtml(brand.copy.achievements)}</button>
-      <p class="hint" id="tilt-hint" hidden>${escapeHtml(brand.copy.tiltHint)}</p>
+      <p class="hint" id="tap-hint">${escapeHtml(brand.copy.tapHint)}</p>
       <p class="hint dim">${escapeHtml(brand.copy.touchHint)}</p>
     </div>
 
-    <div class="hud" id="hud" hidden data-ui>
+    <div class="hud" id="hud" hidden>
       <div class="hud-left">
         <div class="hud-label">${escapeHtml(brand.copy.score)}</div>
         <div class="hud-value" id="hud-score">0</div>
       </div>
       <div class="hud-center">
+        <div class="hud-hearts" id="hud-hearts" aria-label="${escapeHtml(brand.copy.lives)}"></div>
         <div class="hud-combo" id="hud-combo"></div>
         <div class="hud-mult" id="hud-mult"></div>
       </div>
@@ -69,9 +69,10 @@ export function mountUi(el: HTMLElement, h: UiHandlers): void {
     <div class="panel gameover" id="panel-gameover" hidden data-ui>
       <div class="eyebrow">${escapeHtml(brand.copy.gameOver)}</div>
       <div class="score-big" id="go-score">0</div>
-      <div class="meta-row">
+      <div class="meta-row three">
         <div><span>${escapeHtml(brand.copy.best)}</span><strong id="go-best">0</strong></div>
         <div><span>${escapeHtml(brand.copy.height)}</span><strong id="go-floors">0</strong></div>
+        <div><span>${escapeHtml(brand.copy.livesUsed)}</span><strong id="go-lives">0</strong></div>
       </div>
       <div class="run-achs" id="go-achs"></div>
       <div class="btn-row">
@@ -116,11 +117,7 @@ export function mountUi(el: HTMLElement, h: UiHandlers): void {
     handlers.onShare()
   })
 
-  if (!hasSeenTiltHint()) {
-    const hint = byId('tilt-hint')
-    hint.hidden = false
-    tiltShown = true
-  }
+  hintShown = !hasSeenDropHint()
 }
 
 function byId(id: string): HTMLElement {
@@ -144,10 +141,9 @@ export function setScreen(screen: ScreenId, _from: ScreenId | null = null): void
   byId('hud').hidden = screen !== 'playing'
 
   if (screen === 'achievements') renderAchievements()
-  if (screen === 'playing' && tiltShown) {
-    markTiltHintSeen()
-    tiltShown = false
-    byId('tilt-hint').hidden = true
+  if (screen === 'playing' && hintShown) {
+    markDropHintSeen()
+    hintShown = false
   }
 }
 
@@ -156,9 +152,17 @@ export function updateHud(opts: {
   floors: number
   combo: number
   multiplier: number
+  lives: number
+  maxLives?: number
 }): void {
   byId('hud-score').textContent = String(opts.score)
   byId('hud-floors').textContent = String(opts.floors)
+  const max = opts.maxLives ?? 3
+  const hearts = byId('hud-hearts')
+  hearts.innerHTML = Array.from({ length: max }, (_, i) => {
+    const on = i < opts.lives
+    return `<span class="heart ${on ? 'on' : 'off'}" aria-hidden="true">♥</span>`
+  }).join('')
   const combo = byId('hud-combo')
   const mult = byId('hud-mult')
   if (opts.combo >= 2) {
@@ -175,25 +179,27 @@ export function showGameOver(opts: {
   score: number
   best: number
   floors: number
+  livesLost: number
 }): void {
   byId('go-score').textContent = String(opts.score)
   byId('go-best').textContent = String(opts.best)
   byId('go-floors').textContent = brand.copy.floorsLabel(opts.floors)
+  byId('go-lives').textContent = String(opts.livesLost)
 
   const box = byId('go-achs')
   const run = getRunUnlocks()
   if (run.length === 0) {
     box.innerHTML = ''
-    return
+  } else {
+    box.innerHTML =
+      `<div class="run-title">${escapeHtml(brand.copy.thisRun)}</div>` +
+      run
+        .map((id) => {
+          const m = brand.achievements[id]
+          return `<div class="chip">🏅 ${escapeHtml(m.title)}</div>`
+        })
+        .join('')
   }
-  box.innerHTML =
-    `<div class="run-title">${escapeHtml(brand.copy.thisRun)}</div>` +
-    run
-      .map((id) => {
-        const m = brand.achievements[id]
-        return `<div class="chip">🏅 ${escapeHtml(m.title)}</div>`
-      })
-      .join('')
 
   const shareBtn = byId('btn-share') as HTMLButtonElement
   shareBtn.hidden = typeof navigator.share !== 'function'

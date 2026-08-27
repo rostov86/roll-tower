@@ -36,31 +36,36 @@ function tone(
   osc.stop(t + dur + 0.02)
 }
 
+export function sfxDrop(): void {
+  tone(420, 0.12, 0.045, 'sine', 180)
+  tone(180, 0.1, 0.03, 'triangle', 90)
+}
+
 export function sfxLand(): void {
-  tone(140, 0.09, 0.07, 'triangle')
-  tone(90, 0.12, 0.05, 'sine')
+  tone(160, 0.1, 0.08, 'triangle')
+  tone(90, 0.14, 0.05, 'sine')
 }
 
 export function sfxPerfect(): void {
-  tone(660, 0.12, 0.07, 'sine')
-  tone(990, 0.16, 0.045, 'triangle')
-  tone(1320, 0.2, 0.03, 'sine')
+  tone(660, 0.12, 0.08, 'sine')
+  tone(990, 0.16, 0.05, 'triangle')
+  tone(1320, 0.22, 0.035, 'sine')
 }
 
 export function sfxCombo(n: number): void {
   const base = 520 + Math.min(n, 8) * 60
-  tone(base, 0.1, 0.06, 'triangle')
-  tone(base * 1.5, 0.14, 0.04, 'sine')
+  tone(base, 0.1, 0.07, 'triangle')
+  tone(base * 1.5, 0.16, 0.045, 'sine')
 }
 
 export function sfxMiss(): void {
-  tone(220, 0.28, 0.08, 'sawtooth', 70)
-  tone(110, 0.32, 0.06, 'sine', 55)
+  tone(220, 0.28, 0.09, 'sawtooth', 70)
+  tone(110, 0.32, 0.07, 'sine', 55)
 }
 
 export function sfxUi(): void {
-  tone(480, 0.06, 0.04, 'sine')
-  tone(720, 0.08, 0.03, 'triangle')
+  tone(480, 0.06, 0.045, 'sine')
+  tone(720, 0.08, 0.035, 'triangle')
 }
 
 export function sfxUnlock(): void {

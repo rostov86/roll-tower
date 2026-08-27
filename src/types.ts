@@ -30,7 +30,17 @@ export interface Particle {
   size: number
   rot: number
   vr: number
-  kind: 'rice' | 'spark' | 'wasabi'
+  kind: 'rice' | 'spark' | 'wasabi' | 'star'
+}
+
+export interface FloatText {
+  x: number
+  y: number
+  text: string
+  age: number
+  maxAge: number
+  color: string
+  scale: number
 }
 
 export interface Toast {
@@ -49,6 +59,7 @@ export type AchievementId =
   | 'combo5'
   | 'gourmet'
   | 'knifeMaster'
+  | 'survivor'
 
 export interface GameStats {
   score: number
@@ -58,4 +69,5 @@ export interface GameStats {
   maxCombo: number
   perfects: number
   multiplier: number
+  lives: number
 }

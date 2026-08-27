@@ -44,7 +44,7 @@ function writePng(size, path) {
       const nx = (x + 0.5) / size - 0.5
       const ny = (y + 0.5) / size - 0.5
       const r = Math.hypot(nx, ny)
-      let R = 18, G = 8, B = 10, A = 255
+      let R = 78, G = 198, B = 245, A = 255
       if (r < 0.48) {
         const t = r / 0.48
         R = Math.round(226 - t * 80)
@@ -65,7 +65,7 @@ function writePng(size, path) {
       if (r > 0.28 && r < 0.33 && ((Math.floor(sx * 3) + Math.floor(sy * 3)) % 5 === 0)) {
         R = 90; G = 50; B = 20
       }
-      if (r > 0.48) A = 0
+      if (r > 0.48) { R = 78; G = 198; B = 245; A = 255 }
       raw[i] = R
       raw[i + 1] = G
       raw[i + 2] = B

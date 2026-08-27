@@ -1,34 +1,27 @@
 export interface InputState {
   keys: { left: boolean; right: boolean }
   pointerDown: boolean
-  dragging: boolean
   pointerX: number
   pointerY: number
-  tapNudge: number
+  dropQueued: boolean
   gamma: number
   hasMotion: boolean
   motionPermission: 'unknown' | 'granted' | 'denied' | 'unsupported'
 }
 
-const TAP_MOVE_PX = 12
-
 export const input: InputState = {
   keys: { left: false, right: false },
   pointerDown: false,
-  dragging: false,
   pointerX: 0,
   pointerY: 0,
-  tapNudge: 0,
+  dropQueued: false,
   gamma: 0,
   hasMotion: false,
   motionPermission: 'unknown',
 }
 
-let startX = 0
-let startY = 0
-let moved = false
-
 function onKey(e: KeyboardEvent, down: boolean): void {
+  if (e.repeat) return
   if (e.code === 'ArrowLeft' || e.code === 'KeyA') {
     input.keys.left = down
     e.preventDefault()
@@ -37,6 +30,14 @@ function onKey(e: KeyboardEvent, down: boolean): void {
     input.keys.right = down
     e.preventDefault()
   }
+  if (down && (e.code === 'Space' || e.code === 'Enter')) {
+    input.dropQueued = true
+    e.preventDefault()
+  }
+}
+
+function isUiTarget(target: EventTarget | null): boolean {
+  return target instanceof HTMLElement && !!target.closest('[data-ui]')
 }
 
 export function bindInput(canvas: HTMLCanvasElement): void {
@@ -44,14 +45,11 @@ export function bindInput(canvas: HTMLCanvasElement): void {
   window.addEventListener('keyup', (e) => onKey(e, false))
 
   const down = (e: PointerEvent) => {
-    if ((e.target as HTMLElement).closest('[data-ui]')) return
+    if (isUiTarget(e.target)) return
     input.pointerDown = true
-    input.dragging = false
-    moved = false
-    startX = e.clientX
-    startY = e.clientY
     input.pointerX = e.clientX
     input.pointerY = e.clientY
+    input.dropQueued = true
     try {
       canvas.setPointerCapture(e.pointerId)
     } catch {
@@ -60,26 +58,12 @@ export function bindInput(canvas: HTMLCanvasElement): void {
   }
 
   const move = (e: PointerEvent) => {
-    if (!input.pointerDown) return
     input.pointerX = e.clientX
     input.pointerY = e.clientY
-    const dx = e.clientX - startX
-    const dy = e.clientY - startY
-    if (Math.hypot(dx, dy) > TAP_MOVE_PX) {
-      moved = true
-      input.dragging = true
-    }
   }
 
-  const up = (e: PointerEvent) => {
-    if (!input.pointerDown) return
+  const up = () => {
     input.pointerDown = false
-    input.dragging = false
-    if (!moved) {
-      const rect = canvas.getBoundingClientRect()
-      const x = e.clientX - rect.left
-      input.tapNudge = x < rect.width / 2 ? -1 : 1
-    }
   }
 
   canvas.addEventListener('pointerdown', down)
@@ -94,7 +78,6 @@ export function bindInput(canvas: HTMLCanvasElement): void {
     }
   })
 
-  // Prevent pinch-zoom / rubber-band on iOS Safari.
   document.addEventListener('gesturestart', (e) => e.preventDefault())
   document.addEventListener(
     'touchmove',
@@ -122,10 +105,10 @@ export async function requestMotionPermission(): Promise<void> {
   }
 }
 
-export function consumeTapNudge(): number {
-  const n = input.tapNudge
-  input.tapNudge = 0
-  return n
+export function consumeDrop(): boolean {
+  const d = input.dropQueued
+  input.dropQueued = false
+  return d
 }
 
 export function keyDir(): number {
