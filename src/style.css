@@ -34,7 +34,7 @@ body {
   height: 100dvh;
   overflow: hidden;
   overscroll-behavior: none;
-  background: var(--sky);
+  background: #f4e0c0;
   color: var(--ink);
   font-family: var(--font);
   touch-action: none;
@@ -282,16 +282,16 @@ h2 {
   font-size: 12px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #fff;
+  color: var(--ink);
   font-weight: 700;
-  text-shadow: 0 1px 0 rgba(22, 48, 86, 0.35), 0 2px 6px rgba(22, 48, 86, 0.35);
+  text-shadow: 0 1px 0 #fff6e8, 0 2px 0 rgba(255, 246, 232, 0.8);
 }
 
 .hud-value {
   font-size: 32px;
   font-weight: 700;
-  color: #fff;
-  text-shadow: 0 2px 0 #163056, 0 4px 10px rgba(22, 48, 86, 0.35);
+  color: var(--ink);
+  text-shadow: 0 2px 0 #fff6e8, 0 3px 0 rgba(255, 255, 255, 0.7);
   line-height: 1.05;
 }
 
@@ -319,16 +319,16 @@ h2 {
   font-weight: 700;
   color: var(--gold-light);
   min-height: 1.2em;
-  text-shadow: 0 2px 0 #163056;
+  text-shadow: 0 1px 0 #8a4e24;
 }
 
 .hud-combo.hot { animation: pulse 0.45s ease; }
 
 .hud-mult {
   font-size: 13px;
-  color: #fff;
+  color: var(--ink);
   font-weight: 700;
-  text-shadow: 0 1px 0 #163056;
+  text-shadow: 0 1px 0 #fff6e8;
 }
 
 @keyframes pulse {

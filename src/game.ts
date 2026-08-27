@@ -23,13 +23,15 @@ import { getBest, hasSeenDropHint, setBest } from './storage'
 import type { FillingId, FloatText, Particle, Roll, RollStyle, ScreenId } from './types'
 
 const WORLD_W = 400
-const BASE_W = 156
-const ROLL_H = 38
-const HANG_GAP = 132
-const MIN_OVERLAP = 0.25
+const BASE_W = 76
+const ROLL_H = 50
+const HANG_GAP = 120
+const MIN_OVERLAP = 0.5
+const MISS_CENTER = 0.38
+const LEAN_COLLAPSE = 0.55
 const PERFECT_RATIO = 0.06
 const MAX_LIVES = 3
-const BOARD_HALF = 128
+const BOARD_HALF = 90
 
 type Phase = 'swinging' | 'dropping' | 'settling' | 'recovering' | 'failing'
 
@@ -158,7 +160,7 @@ export class Game {
 
   private swingAmp(): number {
     const t = Math.min(this.floors / 40, 1)
-    return 72 + t * 90
+    return 64 + t * 80
   }
 
   update(dt: number): void {
@@ -275,8 +277,11 @@ export class Game {
       this.wobble = 0
       return
     }
-    const lean = Math.abs(this.tower[this.tower.length - 1].x - this.tower[0].x)
-    this.wobble = lean > 70 ? Math.min(1, (lean - 70) / 90) : 0
+    const base = this.tower[0]
+    const lean = Math.abs(this.tower[this.tower.length - 1].x - base.x)
+    const warn = base.w * 0.28
+    const fail = base.w * LEAN_COLLAPSE
+    this.wobble = lean > warn ? Math.min(1, (lean - warn) / Math.max(8, fail - warn)) : 0
   }
 
   private idleDecor(dt: number): void {
@@ -307,6 +312,15 @@ export class Game {
     this.cameraX = 0
   }
 
+  private overlapRatio(cur: Roll, prev: Roll): number {
+    const leftA = prev.x - prev.w / 2
+    const rightA = prev.x + prev.w / 2
+    const leftB = cur.x - cur.w / 2
+    const rightB = cur.x + cur.w / 2
+    const overlap = Math.min(rightA, rightB) - Math.max(leftA, leftB)
+    return overlap / Math.min(prev.w, cur.w)
+  }
+
   private tryLand(): void {
     const cur = this.current
     if (!cur) return
@@ -321,19 +335,15 @@ export class Game {
     }
 
     const prev = this.tower[this.tower.length - 1]
-    const leftA = prev.x - prev.w / 2
-    const rightA = prev.x + prev.w / 2
-    const leftB = cur.x - cur.w / 2
-    const rightB = cur.x + cur.w / 2
-    const overlap = Math.min(rightA, rightB) - Math.max(leftA, leftB)
-    const ratio = overlap / cur.w
+    const ratio = this.overlapRatio(cur, prev)
+    const offset = cur.x - prev.x
 
-    if (ratio < MIN_OVERLAP) {
+    // Center must sit clearly over the piece below; hanging ~half-off is a miss.
+    if (ratio < MIN_OVERLAP || Math.abs(offset) > prev.w * MISS_CENTER) {
       this.miss(cur, prev.x)
       return
     }
 
-    const offset = cur.x - prev.x
     const perfect = Math.abs(offset) <= cur.w * PERFECT_RATIO
     this.plant(cur, perfect, ratio)
   }
@@ -362,7 +372,7 @@ export class Game {
     } else {
       this.combo = 0
       this.perfectStreak = 0
-      if (overlapRatio < 0.42) {
+      if (overlapRatio < 0.62) {
         this.banner = brand.copy.barely
         this.bannerAge = 0.001
       } else {
@@ -374,9 +384,9 @@ export class Game {
 
     this.maxCombo = Math.max(this.maxCombo, this.combo)
     this.multiplier = 1 + Math.min(this.combo, 10) * 0.25
-    const base = 10 + this.floors * 4
+    const points = 10 + this.floors * 4
     const perfectBonus = perfect ? 50 + this.combo * 8 : 0
-    const gained = Math.round((base + perfectBonus) * (perfect ? this.multiplier : 1))
+    const gained = Math.round((points + perfectBonus) * (perfect ? this.multiplier : 1))
     this.score += gained
     this.popScore(cur.x, cur.y + cur.h, gained, perfect)
 
@@ -389,8 +399,46 @@ export class Game {
       lives: this.lives,
     })
 
+    if (this.tower.length >= 2) {
+      const top = this.tower[this.tower.length - 1]
+      const base = this.tower[0]
+      if (Math.abs(top.x - base.x) > base.w * LEAN_COLLAPSE) {
+        this.collapseTower()
+        return
+      }
+    }
+
     this.phase = 'settling'
     this.settleT = 0
+  }
+
+  private collapseTower(): void {
+    const top = this.tower[this.tower.length - 1]
+    const base = this.tower[0]
+    const dir = top && base ? (Math.abs(top.x - base.x) < 1 ? (Math.random() < 0.5 ? -1 : 1) : Math.sign(top.x - base.x)) : 1
+    const dust = top ?? base
+    for (let i = 0; i < this.tower.length; i++) {
+      const r = this.tower[i]
+      r.falling = true
+      r.vx = dir * (80 + i * 22) + (Math.random() - 0.5) * 50
+      r.vy = 40 + Math.random() * 90 + i * 10
+      r.rot = dir * (0.25 + Math.random() * 0.55)
+      this.falling.push(r)
+    }
+    this.tower = []
+    this.current = null
+    this.shake = 24
+    this.combo = 0
+    this.perfectStreak = 0
+    this.multiplier = 1
+    this.livesLost += this.lives
+    this.lives = 0
+    if (dust) spawnMissDust(this.particles, dust.x, dust.y)
+    sfxMiss()
+    this.haptic(50)
+    this.banner = ''
+    this.phase = 'failing'
+    this.failTimer = 0
   }
 
   private miss(cur: Roll, towardX: number): void {
@@ -452,19 +500,14 @@ export class Game {
     if (!this.current || this.phase !== 'swinging' || this.tower.length === 0) return null
     const prev = this.tower[this.tower.length - 1]
     const cur = this.current
-    const leftA = prev.x - prev.w / 2
-    const rightA = prev.x + prev.w / 2
-    const leftB = cur.x - cur.w / 2
-    const rightB = cur.x + cur.w / 2
-    const overlap = Math.min(rightA, rightB) - Math.max(leftA, leftB)
-    const ratio = overlap / cur.w
-    if (ratio < MIN_OVERLAP) return 'bad'
+    const ratio = this.overlapRatio(cur, prev)
+    if (ratio < MIN_OVERLAP || Math.abs(cur.x - prev.x) > prev.w * MISS_CENTER) return 'bad'
     if (Math.abs(cur.x - prev.x) <= cur.w * PERFECT_RATIO) return 'perfect'
     return 'good'
   }
 
   draw(ctx: CanvasRenderingContext2D, cam: Camera): void {
-    drawBackdrop(ctx, cam, this.time, this.screen === 'playing' ? undefined : 0)
+    drawBackdrop(ctx, cam, this.time)
     drawBoard(ctx, cam)
 
     const q = this.overlapQuality()

@@ -1,5 +1,5 @@
 import { brand } from './brand'
-import type { FillingId, FloatText, Particle, Roll, RollStyle } from './types'
+import type { FillingId, FloatText, Particle, Roll } from './types'
 
 const TAU = Math.PI * 2
 
@@ -26,20 +26,6 @@ export const FILLINGS: Record<
 }
 
 export const FILLING_CYCLE: FillingId[] = ['salmon', 'avocado', 'cucumber', 'unagi', 'tuna', 'tamago']
-
-const CITY: { x: number; w: number; h: number; c: string; roof: string }[] = [
-  { x: -190, w: 34, h: 72, c: '#ff9eb5', roof: '#ff3b4e' },
-  { x: -154, w: 26, h: 108, c: '#7ed0ff', roof: '#1e8fd6' },
-  { x: -122, w: 40, h: 64, c: '#ffe27a', roof: '#ff9f2e' },
-  { x: -78, w: 22, h: 92, c: '#b8f08a', roof: '#5aa024' },
-  { x: -52, w: 48, h: 56, c: '#ffb07a', roof: '#e85d4c' },
-  { x: 8, w: 30, h: 120, c: '#c9b6ff', roof: '#7a5ad8' },
-  { x: 42, w: 36, h: 70, c: '#7ee7c0', roof: '#2aa87a' },
-  { x: 84, w: 28, h: 96, c: '#ff8aa0', roof: '#d01e36' },
-  { x: 118, w: 44, h: 60, c: '#fff4c2', roof: '#ffc938' },
-  { x: 166, w: 24, h: 84, c: '#8ad4ff', roof: '#4ec6f5' },
-  { x: 196, w: 38, h: 52, c: '#f4a6d8', roof: '#e0233a' },
-]
 
 export function worldToScreen(cam: Camera, wx: number, wy: number): { x: number; y: number } {
   return {
@@ -70,277 +56,234 @@ function roundRect(
   ctx.closePath()
 }
 
-function clamp01(v: number): number {
-  return Math.max(0, Math.min(1, v))
+const PX = {
+  wallA: '#f7e4c6',
+  wallB: '#f0c8a0',
+  grout: '#e2b07a',
+  wood: '#c9844a',
+  woodDk: '#8a4e24',
+  woodMd: '#a86830',
+  woodLt: '#e8b878',
+  woodHi: '#f4d4a0',
+  sky: '#7ee7ff',
+  skyHi: '#d8f6ff',
+  skyMid: '#4ec6f5',
+  sun: '#ffe566',
+  sunHi: '#fff6b0',
+  cloud: '#ffffff',
+  frame: '#6b4220',
+  frameLt: '#a86a34',
+  fridge: '#eef4f8',
+  fridgeDk: '#c5d4de',
+  fridgeHi: '#ffffff',
+  handle: '#ffc938',
+  plant: '#8fbf3a',
+  plantDk: '#5a8a1c',
+  pot: '#c46a28',
+  soy: '#2a1810',
+  nori: '#1b3a22',
+  rice: '#fff6e8',
+  salmon: '#ff6b4a',
+  avocado: '#8fc63a',
+  wasabi: '#8fbf3a',
 }
 
-function lerp(a: number, b: number, t: number): number {
-  return a + (b - a) * t
+function pixelUnit(cam: Camera): number {
+  return Math.max(8, Math.round(Math.min(cam.w, cam.h) / 56))
 }
 
-function lerpHex(a: string, b: string, t: number): string {
-  const pa = parseInt(a.slice(1), 16)
-  const pb = parseInt(b.slice(1), 16)
-  const ra = (pa >> 16) & 255
-  const ga = (pa >> 8) & 255
-  const ba = pa & 255
-  const rb = (pb >> 16) & 255
-  const gb = (pb >> 8) & 255
-  const bb = pb & 255
-  const r = Math.round(lerp(ra, rb, t))
-  const g = Math.round(lerp(ga, gb, t))
-  const bl = Math.round(lerp(ba, bb, t))
-  return `rgb(${r},${g},${bl})`
-}
-
-/** 0 day → dusk → night. Night only after a very tall tower. */
-export function altitudeOf(cam: Camera): number {
-  return clamp01(Math.max(0, cam.y) / 4200)
-}
-
-export function drawBackdrop(ctx: CanvasRenderingContext2D, cam: Camera, t: number, altOverride?: number): void {
-  const { w, h } = cam
-  const alt = altOverride !== undefined ? clamp01(altOverride) : altitudeOf(cam)
-  const dusk = clamp01((alt - 0.55) / 0.25)
-  const night = clamp01((alt - 0.78) / 0.22)
-
-  const top = lerpHex(lerpHex('#9befff', '#c9b6ff', dusk), '#0b1638', night)
-  const mid = lerpHex(lerpHex('#4ec6f5', '#ff8a6a', dusk), '#1a0a40', night)
-  const bot = lerpHex(lerpHex('#b8f06a', '#ff5e8a', dusk), '#12082a', night)
-
-  const g = ctx.createLinearGradient(0, 0, 0, h)
-  g.addColorStop(0, top)
-  g.addColorStop(0.45, mid)
-  g.addColorStop(1, bot)
-  ctx.fillStyle = g
-  ctx.fillRect(0, 0, w, h)
-
-  drawSunMoon(ctx, cam, t, dusk, night)
-  drawStars(ctx, cam, t, night)
-  drawClouds(ctx, cam, t, 1 - night * 0.85)
-  drawCity(ctx, cam, t, dusk, night)
-}
-
-function drawSunMoon(
+function pset(
   ctx: CanvasRenderingContext2D,
-  cam: Camera,
-  t: number,
-  dusk: number,
-  night: number,
+  P: number,
+  gx: number,
+  gy: number,
+  gw: number,
+  gh: number,
+  color: string,
 ): void {
-  const x = cam.w * 0.82
-  const y = cam.h * (0.14 + dusk * 0.08)
-  const r = Math.min(cam.w, cam.h) * 0.07
-  ctx.save()
-  if (night < 0.55) {
-    ctx.globalAlpha = 1 - night
-    const glow = ctx.createRadialGradient(x, y, r * 0.2, x, y, r * 3.2)
-    glow.addColorStop(0, `rgba(255, 236, 140, ${0.7 - dusk * 0.3})`)
-    glow.addColorStop(1, 'rgba(255, 200, 80, 0)')
-    ctx.fillStyle = glow
-    ctx.beginPath()
-    ctx.arc(x, y, r * 3.2, 0, TAU)
-    ctx.fill()
-    ctx.fillStyle = dusk > 0.4 ? '#ffb36a' : '#ffe566'
-    ctx.beginPath()
-    ctx.arc(x, y, r, 0, TAU)
-    ctx.fill()
-    ctx.fillStyle = 'rgba(255,255,255,0.55)'
-    ctx.beginPath()
-    ctx.arc(x - r * 0.22, y - r * 0.22, r * 0.42, 0, TAU)
-    ctx.fill()
-    const rays = 10
-    ctx.strokeStyle = `rgba(255, 230, 90, ${0.35 - dusk * 0.15})`
-    ctx.lineWidth = 3
-    for (let i = 0; i < rays; i++) {
-      const a = (i / rays) * TAU + t * 0.15
-      ctx.beginPath()
-      ctx.moveTo(x + Math.cos(a) * r * 1.25, y + Math.sin(a) * r * 1.25)
-      ctx.lineTo(x + Math.cos(a) * r * 1.85, y + Math.sin(a) * r * 1.85)
-      ctx.stroke()
-    }
-  }
-  if (night > 0.25) {
-    ctx.globalAlpha = clamp01((night - 0.25) / 0.5)
-    const mx = cam.w * 0.78
-    const my = cam.h * 0.12
-    const mr = r * 0.85
-    ctx.fillStyle = '#f4f1de'
-    ctx.beginPath()
-    ctx.arc(mx, my, mr, 0, TAU)
-    ctx.fill()
-    ctx.fillStyle = 'rgba(180, 190, 210, 0.35)'
-    ctx.beginPath()
-    ctx.arc(mx + mr * 0.25, my - mr * 0.1, mr * 0.22, 0, TAU)
-    ctx.fill()
-    ctx.beginPath()
-    ctx.arc(mx - mr * 0.3, my + mr * 0.2, mr * 0.14, 0, TAU)
-    ctx.fill()
-  }
-  ctx.restore()
-}
-
-function drawStars(ctx: CanvasRenderingContext2D, cam: Camera, t: number, night: number): void {
-  if (night <= 0.05) return
-  ctx.save()
-  ctx.globalAlpha = night
-  for (let i = 0; i < 48; i++) {
-    const x = ((i * 97) % 400) / 400 * cam.w
-    const y = ((i * 53) % 280) / 280 * cam.h * 0.55
-    const tw = 0.45 + 0.55 * (0.5 + 0.5 * Math.sin(t * 2.4 + i))
-    ctx.fillStyle = `rgba(255,255,255,${tw})`
-    ctx.beginPath()
-    ctx.arc(x, y, i % 5 === 0 ? 1.8 : 1.1, 0, TAU)
-    ctx.fill()
-  }
-  ctx.restore()
-}
-
-function drawClouds(ctx: CanvasRenderingContext2D, cam: Camera, t: number, alpha: number): void {
-  if (alpha <= 0.04) return
-  ctx.save()
-  ctx.globalAlpha = alpha * 0.92
-  const parallax = cam.y * 0.04
-  for (let i = 0; i < 7; i++) {
-    const speed = 8 + i * 3
-    const x = ((i * 173 + t * speed) % (cam.w + 220)) - 110
-    const y = 40 + ((i * 67) % 160) - parallax * (0.4 + (i % 3) * 0.2)
-    puff(ctx, x, y, 28 + (i % 3) * 8, i % 2 === 0 ? '#ffffff' : '#eef9ff')
-  }
-  ctx.restore()
-}
-
-function puff(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, color: string): void {
   ctx.fillStyle = color
-  ctx.beginPath()
-  ctx.arc(x, y, r, 0, TAU)
-  ctx.arc(x + r * 0.9, y + 4, r * 0.75, 0, TAU)
-  ctx.arc(x - r * 0.85, y + 6, r * 0.7, 0, TAU)
-  ctx.arc(x + r * 0.15, y - r * 0.45, r * 0.65, 0, TAU)
-  ctx.fill()
+  ctx.fillRect(gx * P, gy * P, gw * P, gh * P)
 }
 
-function drawCity(
-  ctx: CanvasRenderingContext2D,
-  cam: Camera,
-  t: number,
-  dusk: number,
-  night: number,
-): void {
-  const ground = worldToScreen(cam, 0, -6)
-  if (ground.y > cam.h + 160) return
-  const s = cam.scale
+export function drawBackdrop(ctx: CanvasRenderingContext2D, cam: Camera, t: number): void {
+  const P = pixelUnit(cam)
+  const cols = Math.ceil(cam.w / P) + 1
+  const rows = Math.ceil(cam.h / P) + 1
+  drawTiledWall(ctx, P, cols, rows)
+  drawCeiling(ctx, P, cols)
+  drawWindow(ctx, P, cols, rows, t)
+  drawCity(ctx, cam)
+}
 
-  // distant hills
-  ctx.fillStyle = lerpHex(lerpHex('#8ed96a', '#5a8a40', dusk), '#2a1848', night)
-  ctx.beginPath()
-  ctx.moveTo(-20, ground.y + 40)
-  for (let i = 0; i <= 8; i++) {
-    const hx = (i / 8) * cam.w
-    const hy = ground.y - (18 + (i % 3) * 16) * s - Math.sin(i * 1.4) * 10
-    ctx.lineTo(hx, hy)
-  }
-  ctx.lineTo(cam.w + 20, ground.y + 80)
-  ctx.closePath()
-  ctx.fill()
-
-  for (const b of CITY) {
-    const p = worldToScreen(cam, b.x, 0)
-    const bw = b.w * s
-    const bh = b.h * s
-    const x = p.x - bw / 2
-    const y = ground.y - bh + 8
-    ctx.fillStyle = night > 0.4 ? shade(b.c, 0.45) : b.c
-    roundRect(ctx, x, y, bw, bh, 3)
-    ctx.fill()
-    ctx.fillStyle = night > 0.4 ? shade(b.roof, 0.55) : b.roof
-    ctx.beginPath()
-    ctx.moveTo(x - 3, y + 4)
-    ctx.lineTo(x + bw / 2, y - 12 * s)
-    ctx.lineTo(x + bw + 3, y + 4)
-    ctx.closePath()
-    ctx.fill()
-
-    const cols = Math.max(2, Math.floor(b.w / 12))
-    const rows = Math.max(2, Math.floor(b.h / 16))
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        const lit = night > 0.25 && (Math.sin(t * 0.7 + r * 3 + c * 5 + b.x) > 0.15)
-        ctx.fillStyle = lit ? '#ffe27a' : 'rgba(255,255,255,0.35)'
-        ctx.fillRect(x + 5 + c * (bw - 10) / cols, y + 10 + r * (bh - 16) / rows, 4 * s, 5 * s)
-      }
+function drawTiledWall(ctx: CanvasRenderingContext2D, P: number, cols: number, rows: number): void {
+  const tile = 4
+  for (let ty = 0; ty < Math.ceil(rows / tile) + 1; ty++) {
+    for (let tx = 0; tx < Math.ceil(cols / tile) + 1; tx++) {
+      const even = (tx + ty) % 2 === 0
+      pset(ctx, P, tx * tile, ty * tile, tile, tile, even ? PX.wallA : PX.wallB)
     }
   }
-
-  // sushi shop sign
-  const shop = worldToScreen(cam, -52, 0)
-  ctx.fillStyle = brand.colors.primary
-  ctx.beginPath()
-  ctx.arc(shop.x + 4, ground.y - 70 * s, 11 * s, 0, TAU)
-  ctx.fill()
-  ctx.fillStyle = '#fff'
-  ctx.beginPath()
-  ctx.arc(shop.x + 4, ground.y - 70 * s, 6 * s, 0, TAU)
-  ctx.fill()
+  ctx.fillStyle = PX.grout
+  for (let ty = 0; ty <= Math.ceil(rows / tile); ty++) {
+    ctx.fillRect(0, ty * tile * P, cols * P, Math.max(1, P / 8))
+  }
+  for (let tx = 0; tx <= Math.ceil(cols / tile); tx++) {
+    ctx.fillRect(tx * tile * P, 0, Math.max(1, P / 8), rows * P)
+  }
 }
 
-function shade(hex: string, k: number): string {
-  const p = parseInt(hex.slice(1), 16)
-  const r = Math.round(((p >> 16) & 255) * k)
-  const g = Math.round(((p >> 8) & 255) * k)
-  const b = Math.round((p & 255) * k)
-  return `rgb(${r},${g},${b})`
+function drawCeiling(ctx: CanvasRenderingContext2D, P: number, cols: number): void {
+  pset(ctx, P, 0, 0, cols, 3, PX.wood)
+  pset(ctx, P, 0, 0, cols, 1, PX.woodDk)
+  pset(ctx, P, 0, 2, cols, 1, PX.woodMd)
+  for (let x = 2; x < cols; x += 6) {
+    pset(ctx, P, x, 1, 1, 1, PX.woodHi)
+  }
+}
+
+function drawWindow(ctx: CanvasRenderingContext2D, P: number, cols: number, rows: number, t: number): void {
+  const ww = 16
+  const wh = 12
+  const wx = Math.max(6, Math.floor(cols * 0.22) - 4)
+  const wy = Math.max(5, Math.min(8, Math.floor(rows * 0.08)))
+  pset(ctx, P, wx, wy, ww, wh, PX.frame)
+  pset(ctx, P, wx + 1, wy + 1, ww - 2, wh - 2, PX.frameLt)
+  const innerX = wx + 2
+  const innerY = wy + 2
+  const innerW = ww - 4
+  const innerH = wh - 4
+  const paneW = Math.floor((innerW - 2) / 2)
+  const paneH = Math.floor((innerH - 2) / 2)
+  const panes = [
+    { x: innerX, y: innerY },
+    { x: innerX + paneW + 2, y: innerY },
+    { x: innerX, y: innerY + paneH + 2 },
+    { x: innerX + paneW + 2, y: innerY + paneH + 2 },
+  ]
+  for (let i = 0; i < 4; i++) {
+    const p = panes[i]
+    pset(ctx, P, p.x, p.y, paneW, paneH, i === 1 ? PX.skyHi : PX.sky)
+    pset(ctx, P, p.x, p.y + paneH - 2, paneW, 2, PX.skyMid)
+  }
+  // sun in top-right pane
+  const sun = panes[1]
+  pset(ctx, P, sun.x + paneW - 4, sun.y + 1, 3, 3, PX.sun)
+  pset(ctx, P, sun.x + paneW - 3, sun.y + 2, 1, 1, Math.sin(t * 2.2) > 0 ? PX.sunHi : PX.sun)
+  // cloud in top-left
+  const cl = panes[0]
+  pset(ctx, P, cl.x + 1, cl.y + 2, 3, 1, PX.cloud)
+  pset(ctx, P, cl.x + 2, cl.y + 1, 2, 1, PX.cloud)
+  // mullions
+  pset(ctx, P, wx + Math.floor(ww / 2) - 1, wy + 1, 2, wh - 2, PX.frameLt)
+  pset(ctx, P, wx + 1, wy + Math.floor(wh / 2) - 1, ww - 2, 2, PX.frameLt)
+  pset(ctx, P, wx + Math.floor(ww / 2), wy + 1, 1, wh - 2, PX.frame)
+  pset(ctx, P, wx + 1, wy + Math.floor(wh / 2), ww - 2, 1, PX.frame)
+  // sill
+  pset(ctx, P, wx - 1, wy + wh, ww + 2, 1, PX.woodLt)
+  pset(ctx, P, wx - 1, wy + wh + 1, ww + 2, 1, PX.wood)
+}
+
+function drawCity(ctx: CanvasRenderingContext2D, cam: Camera): void {
+  const P = pixelUnit(cam)
+  const cols = Math.ceil(cam.w / P) + 1
+  const rows = Math.ceil(cam.h / P) + 1
+  drawShelves(ctx, P, cols, rows)
+  drawFridge(ctx, P, cols, rows)
+  drawPlant(ctx, P, cols, rows)
+}
+
+function drawShelves(ctx: CanvasRenderingContext2D, P: number, _cols: number, rows: number): void {
+  const sx = 1
+  const sy = Math.max(16, Math.floor(rows * 0.22))
+  const sw = 8
+  for (let i = 0; i < 3; i++) {
+    const y = sy + i * 6
+    pset(ctx, P, sx, y + 3, sw, 1, PX.woodDk)
+    pset(ctx, P, sx, y + 2, sw, 1, PX.wood)
+    pset(ctx, P, sx, y + 2, 1, 2, PX.woodDk)
+    pset(ctx, P, sx + sw - 1, y + 2, 1, 2, PX.woodDk)
+  }
+  // jars / bottles
+  pset(ctx, P, sx + 1, sy + 0, 2, 2, PX.soy)
+  pset(ctx, P, sx + 1, sy - 1, 2, 1, PX.nori)
+  pset(ctx, P, sx + 4, sy + 0, 2, 2, PX.salmon)
+  pset(ctx, P, sx + 4, sy - 1, 2, 1, PX.woodLt)
+  pset(ctx, P, sx + 1, sy + 6, 2, 2, PX.avocado)
+  pset(ctx, P, sx + 1, sy + 5, 2, 1, PX.woodHi)
+  pset(ctx, P, sx + 4, sy + 6, 2, 2, PX.wasabi)
+  pset(ctx, P, sx + 4, sy + 5, 1, 1, PX.nori)
+  pset(ctx, P, sx + 2, sy + 12, 3, 2, PX.pot)
+  pset(ctx, P, sx + 3, sy + 11, 1, 1, PX.woodDk)
+}
+
+function drawFridge(ctx: CanvasRenderingContext2D, P: number, cols: number, rows: number): void {
+  const fw = 8
+  const fh = 20
+  const fx = cols - fw - 1
+  const fy = Math.max(14, rows - fh - 10)
+  pset(ctx, P, fx - 1, fy + 1, 1, fh, 'rgba(90, 60, 30, 0.12)')
+  pset(ctx, P, fx, fy, fw, fh, PX.fridgeDk)
+  pset(ctx, P, fx + 1, fy + 1, fw - 2, fh - 2, PX.fridge)
+  pset(ctx, P, fx + 1, fy + 1, fw - 2, 1, PX.fridgeHi)
+  // freezer split
+  pset(ctx, P, fx + 1, fy + 7, fw - 2, 1, PX.fridgeDk)
+  // handle
+  pset(ctx, P, fx + 1, fy + 9, 1, 4, PX.handle)
+  pset(ctx, P, fx + 1, fy + 3, 1, 2, PX.handle)
+  // magnets
+  pset(ctx, P, fx + 4, fy + 3, 1, 1, PX.salmon)
+  pset(ctx, P, fx + 5, fy + 4, 1, 1, PX.avocado)
+  // feet
+  pset(ctx, P, fx + 1, fy + fh, 1, 1, PX.woodDk)
+  pset(ctx, P, fx + fw - 2, fy + fh, 1, 1, PX.woodDk)
+}
+
+function drawPlant(ctx: CanvasRenderingContext2D, P: number, cols: number, rows: number): void {
+  const fx = cols - 11
+  const fy = Math.max(14, rows - 31)
+  pset(ctx, P, fx - 3, fy + 18, 3, 2, PX.pot)
+  pset(ctx, P, fx - 2, fy + 16, 1, 2, PX.plantDk)
+  pset(ctx, P, fx - 3, fy + 15, 1, 2, PX.plant)
+  pset(ctx, P, fx - 1, fy + 15, 1, 2, PX.plant)
+  pset(ctx, P, fx - 2, fy + 14, 1, 1, PX.plant)
 }
 
 export function drawBoard(ctx: CanvasRenderingContext2D, cam: Camera): void {
+  const P = pixelUnit(cam)
+  const origin = worldToScreen(cam, 0, 0)
   const s = cam.scale
-  const top = worldToScreen(cam, 0, 0)
-  const bw = 268 * s
-  const bh = 28 * s
-  const rx = bw / 2
+  const half = 148 * s
+  const x0 = Math.round((origin.x - half) / P) * P
+  const y0 = Math.round((origin.y - P) / P) * P
+  const w = Math.max(P * 12, Math.round((half * 2) / P) * P)
+  const h = Math.max(P * 4, Math.round((28 * s) / P) * P)
 
-  ctx.save()
-  ctx.fillStyle = 'rgba(40, 60, 30, 0.28)'
-  ctx.beginPath()
-  ctx.ellipse(top.x, top.y + 26 * s, rx * 1.05, 14 * s, 0, 0, TAU)
-  ctx.fill()
+  ctx.fillStyle = 'rgba(90, 50, 20, 0.18)'
+  ctx.fillRect(x0 + P, y0 + h, w, P * 2)
 
-  const wood = ctx.createLinearGradient(top.x - rx, 0, top.x + rx, 0)
-  wood.addColorStop(0, '#8a4e24')
-  wood.addColorStop(0.2, '#e0a05a')
-  wood.addColorStop(0.5, '#f0c078')
-  wood.addColorStop(0.8, '#c9844a')
-  wood.addColorStop(1, '#6b3a18')
-  roundRect(ctx, top.x - rx, top.y - 6, bw, bh + 18 * s, 12 * s)
-  ctx.fillStyle = wood
-  ctx.fill()
-
-  ctx.strokeStyle = 'rgba(90, 40, 16, 0.28)'
-  ctx.lineWidth = 1.2
-  for (let i = 0; i < 8; i++) {
-    const gx = top.x - rx * 0.82 + (i / 7) * rx * 1.64
-    ctx.beginPath()
-    ctx.moveTo(gx, top.y)
-    ctx.bezierCurveTo(gx + 5, top.y + bh * 0.4, gx - 4, top.y + bh * 0.8, gx + 2, top.y + bh + 10)
-    ctx.stroke()
+  const bands = [PX.woodDk, PX.woodMd, PX.wood, PX.woodLt, PX.wood, PX.woodMd]
+  const rows = Math.max(1, Math.round(h / P))
+  for (let i = 0; i < rows; i++) {
+    ctx.fillStyle = bands[i % bands.length]
+    ctx.fillRect(x0, y0 + i * P, w, P)
   }
+  ctx.fillStyle = PX.woodHi
+  for (let i = 0; i < 10; i++) {
+    const gx = x0 + ((i * 5 + 2) % Math.max(2, Math.round(w / P) - 2)) * P
+    ctx.fillRect(gx, y0 + P, P, P)
+  }
+  ctx.fillStyle = PX.woodDk
+  ctx.fillRect(x0, y0 + h - P, w, P)
+  ctx.fillRect(x0, y0, P, h)
+  ctx.fillRect(x0 + w - P, y0, P, h)
 
-  // cutting-board inlay
-  ctx.fillStyle = 'rgba(255, 246, 232, 0.18)'
-  roundRect(ctx, top.x - rx * 0.62, top.y + 4, bw * 0.62, 10 * s, 4)
-  ctx.fill()
-
-  // tiny soy dish
-  ctx.fillStyle = '#1a1a1a'
-  ctx.beginPath()
-  ctx.ellipse(top.x + rx * 0.72, top.y + 10, 10 * s, 5 * s, 0, 0, TAU)
-  ctx.fill()
+  // soy dish
+  const dx = x0 + w - P * 5
+  const dy = y0 + P
+  ctx.fillStyle = PX.soy
+  ctx.fillRect(dx, dy, P * 3, P * 2)
   ctx.fillStyle = '#3a1a10'
-  ctx.beginPath()
-  ctx.ellipse(top.x + rx * 0.72, top.y + 9, 7 * s, 3 * s, 0, 0, TAU)
-  ctx.fill()
-
-  ctx.restore()
+  ctx.fillRect(dx + P, dy, P, P)
 }
 
 export function drawRoll(ctx: CanvasRenderingContext2D, cam: Camera, roll: Roll): void {
@@ -349,161 +292,171 @@ export function drawRoll(ctx: CanvasRenderingContext2D, cam: Camera, roll: Roll)
   const bw = roll.w * squash
   const bh = roll.h / squash
   const bottom = worldToScreen(cam, roll.x, roll.y)
-  const topY = bottom.y - bh * s
   const cx = bottom.x
-  const left = cx - (bw / 2) * s
-  const right = cx + (bw / 2) * s
-  const depth = Math.max(11, Math.min(28, bw * 0.17)) * s
-  const ix = depth * 0.62
-  const iy = depth * 0.48
+  const rx = Math.max(8, (bw / 2) * s)
+  const ry = Math.max(6, rx * 0.4)
+  const bodyH = Math.max(ry * 1.35, bh * s)
+  const topCy = bottom.y - bodyH
   const pal = FILLINGS[roll.type]
-  const fh = bottom.y - topY
+  const maki = roll.style === 'maki'
+  const nori = '#163820'
+  const noriHi = '#2f6340'
+  const noriLo = '#0c1c12'
+  const rice = '#fff4e0'
 
   ctx.save()
   ctx.globalAlpha *= roll.opacity
-  const midY = (bottom.y + topY) / 2
+  const midY = (bottom.y + topCy) / 2
   ctx.translate(cx, midY)
   ctx.rotate(roll.rot)
   ctx.translate(-cx, -midY)
 
-  ctx.fillStyle = `rgba(20, 40, 70, ${0.22 * roll.opacity})`
+  ctx.fillStyle = `rgba(90, 50, 20, ${0.2 * roll.opacity})`
   ctx.beginPath()
-  ctx.ellipse(cx + 4, bottom.y + 6, (bw / 2) * s * 0.92, 7 * s, 0, 0, TAU)
+  ctx.ellipse(cx + 3, bottom.y + ry * 0.35, rx * 0.9, ry * 0.5, 0, 0, TAU)
   ctx.fill()
 
-  const noriDark = roll.style === 'maki' ? '#0f2416' : '#c4b79e'
-  ctx.beginPath()
-  ctx.moveTo(right, topY)
-  ctx.lineTo(right + ix, topY - iy)
-  ctx.lineTo(right + ix, bottom.y - iy)
-  ctx.lineTo(right, bottom.y)
-  ctx.closePath()
-  ctx.fillStyle = noriDark
-  ctx.fill()
-
-  const fg = ctx.createLinearGradient(left, 0, right, 0)
-  if (roll.style === 'maki') {
-    fg.addColorStop(0, '#14261a')
-    fg.addColorStop(0.18, '#2f6340')
-    fg.addColorStop(0.5, '#1e3d28')
-    fg.addColorStop(0.85, '#163022')
-    fg.addColorStop(1, '#0c1810')
+  const side = ctx.createLinearGradient(cx - rx, 0, cx + rx, 0)
+  if (maki) {
+    side.addColorStop(0, noriLo)
+    side.addColorStop(0.12, noriHi)
+    side.addColorStop(0.45, nori)
+    side.addColorStop(0.8, noriLo)
+    side.addColorStop(1, '#08140c')
   } else {
-    fg.addColorStop(0, '#d4cbb8')
-    fg.addColorStop(0.2, '#fff8ec')
-    fg.addColorStop(0.6, '#f3ead8')
-    fg.addColorStop(1, '#cfc3ae')
+    side.addColorStop(0, '#cfc3ae')
+    side.addColorStop(0.18, '#fff8ec')
+    side.addColorStop(0.55, rice)
+    side.addColorStop(0.85, '#e8dcc4')
+    side.addColorStop(1, '#c4b79e')
   }
-  ctx.fillStyle = fg
-  ctx.fillRect(left, topY, right - left, fh)
+  ctx.fillStyle = side
+  ctx.beginPath()
+  ctx.rect(cx - rx, topCy, rx * 2, bodyH)
+  ctx.ellipse(cx, bottom.y, rx, ry, 0, 0, Math.PI)
+  ctx.fill()
 
-  const stripeY = topY + fh * 0.34
-  const stripeH = fh * 0.32
-  const sg = ctx.createLinearGradient(left, 0, right, 0)
-  sg.addColorStop(0, pal.fillDark)
-  sg.addColorStop(0.35, pal.accent)
-  sg.addColorStop(0.55, pal.fill)
-  sg.addColorStop(1, pal.fillDark)
+  ctx.beginPath()
+  ctx.ellipse(cx, bottom.y, rx, ry, 0, 0, TAU)
+  ctx.fill()
 
-  if (roll.style === 'uramaki') {
-    ctx.fillStyle = '#1a3320'
-    ctx.fillRect(left, topY + fh * 0.28, right - left, fh * 0.44)
-    ctx.fillStyle = sg
-    ctx.fillRect(left + 4, stripeY, right - left - 8, stripeH * 0.72)
+  if (!maki) {
     ctx.fillStyle = 'rgba(90,50,20,0.5)'
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < 14; i++) {
+      const sx = cx - rx + 5 + ((i * 17) % Math.max(10, rx * 2 - 10))
+      const sy = topCy + 6 + ((i * 13) % Math.max(8, bodyH - 10))
       ctx.beginPath()
-      ctx.ellipse(
-        left + 8 + ((i * 19) % Math.max(8, right - left - 16)),
-        topY + 6 + ((i * 11) % Math.max(8, fh - 12)),
-        1.6,
-        0.9,
-        0.5,
-        0,
-        TAU,
-      )
+      ctx.ellipse(sx, sy, 1.7, 1.0, 0.5, 0, TAU)
       ctx.fill()
     }
-  } else {
-    ctx.fillStyle = 'rgba(243,234,216,0.62)'
-    ctx.fillRect(left + 3, topY + fh * 0.12, right - left - 6, fh * 0.16)
-    ctx.fillStyle = sg
-    ctx.fillRect(left + 2, stripeY, right - left - 4, stripeH)
-    ctx.fillStyle = 'rgba(243,234,216,0.5)'
-    ctx.fillRect(left + 3, topY + fh * 0.7, right - left - 6, fh * 0.14)
   }
 
-  ctx.strokeStyle = 'rgba(0,0,0,0.16)'
-  ctx.lineWidth = 1
-  ctx.strokeRect(left + 0.5, topY + 0.5, right - left - 1, fh - 1)
-
-  ctx.strokeStyle = roll.style === 'maki' ? 'rgba(180, 220, 180, 0.22)' : 'rgba(255,255,255,0.35)'
-  ctx.lineWidth = 2
   ctx.beginPath()
-  ctx.moveTo(left + (right - left) * 0.18, topY + 6)
-  ctx.lineTo(left + (right - left) * 0.2, bottom.y - 6)
+  ctx.ellipse(cx, topCy, rx, ry, 0, 0, TAU)
+  ctx.fillStyle = maki ? nori : rice
+  ctx.fill()
+
+  ctx.beginPath()
+  ctx.ellipse(cx, topCy, rx * 0.76, ry * 0.76, 0, 0, TAU)
+  ctx.fillStyle = rice
+  ctx.fill()
+
+  if (!maki) {
+    ctx.beginPath()
+    ctx.ellipse(cx, topCy, rx * 0.56, ry * 0.56, 0, 0, TAU)
+    ctx.fillStyle = nori
+    ctx.fill()
+    ctx.beginPath()
+    ctx.ellipse(cx, topCy, rx * 0.44, ry * 0.44, 0, 0, TAU)
+    ctx.fillStyle = rice
+    ctx.fill()
+  }
+
+  ctx.fillStyle = 'rgba(255, 248, 232, 0.55)'
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * TAU + 0.4
+    ctx.beginPath()
+    ctx.ellipse(
+      cx + Math.cos(a) * rx * 0.58,
+      topCy + Math.sin(a) * ry * 0.58,
+      1.6,
+      1.0,
+      a,
+      0,
+      TAU,
+    )
+    ctx.fill()
+  }
+
+  drawMakiFilling(ctx, cx, topCy, rx, ry, roll.type, pal)
+
+  ctx.strokeStyle = maki ? 'rgba(180, 220, 180, 0.28)' : 'rgba(255,255,255,0.45)'
+  ctx.lineWidth = Math.max(1.4, rx * 0.04)
+  ctx.beginPath()
+  ctx.ellipse(cx, topCy, rx * 0.94, ry * 0.94, 0, Math.PI * 1.05, Math.PI * 1.55)
   ctx.stroke()
 
-  drawRollTop(ctx, left, right, topY, ix, iy, roll.style, pal)
+  ctx.strokeStyle = 'rgba(0,0,0,0.18)'
+  ctx.lineWidth = 1
+  ctx.beginPath()
+  ctx.ellipse(cx, topCy, rx, ry, 0, 0, TAU)
+  ctx.stroke()
 
   ctx.restore()
 }
 
-function drawRollTop(
+function drawMakiFilling(
   ctx: CanvasRenderingContext2D,
-  left: number,
-  right: number,
-  topY: number,
-  ix: number,
-  iy: number,
-  style: RollStyle,
+  cx: number,
+  cy: number,
+  rx: number,
+  ry: number,
+  type: FillingId,
   pal: (typeof FILLINGS)[FillingId],
 ): void {
-  ctx.beginPath()
-  ctx.moveTo(left, topY)
-  ctx.lineTo(right, topY)
-  ctx.lineTo(right + ix, topY - iy)
-  ctx.lineTo(left + ix, topY - iy)
-  ctx.closePath()
-  ctx.fillStyle = style === 'maki' ? '#244a30' : '#f7f1e4'
-  ctx.fill()
-
-  const inset = 5
-  ctx.beginPath()
-  ctx.moveTo(left + inset, topY - 1)
-  ctx.lineTo(right - inset, topY - 1)
-  ctx.lineTo(right + ix - inset, topY - iy + 2)
-  ctx.lineTo(left + ix + inset, topY - iy + 2)
-  ctx.closePath()
-  ctx.fillStyle = '#fff4e4'
-  ctx.fill()
-
-  const mx = (left + right) / 2
-  ctx.beginPath()
-  ctx.moveTo(mx - 9, topY)
-  ctx.lineTo(mx + 9, topY)
-  ctx.lineTo(mx + 9 + ix * 0.12, topY - iy + 3)
-  ctx.lineTo(mx - 9 + ix * 0.12, topY - iy + 3)
-  ctx.closePath()
   ctx.fillStyle = pal.fill
-  ctx.fill()
-  ctx.fillStyle = pal.fillDark
-  ctx.globalAlpha *= 0.45
-  ctx.beginPath()
-  ctx.moveTo(mx - 3, topY)
-  ctx.lineTo(mx + 3, topY)
-  ctx.lineTo(mx + 3 + ix * 0.12, topY - iy + 3)
-  ctx.lineTo(mx - 3 + ix * 0.12, topY - iy + 3)
-  ctx.closePath()
-  ctx.fill()
-  ctx.globalAlpha /= 0.45
-
-  ctx.strokeStyle = 'rgba(255,255,255,0.4)'
-  ctx.lineWidth = 1.4
-  ctx.beginPath()
-  ctx.moveTo(left + 8, topY - 2)
-  ctx.lineTo(left + ix + 6, topY - iy + 3)
-  ctx.stroke()
+  if (type === 'salmon' || type === 'tuna' || type === 'unagi') {
+    ctx.beginPath()
+    ctx.ellipse(cx + rx * 0.02, cy, rx * 0.4, ry * 0.34, 0.4, 0, TAU)
+    ctx.fill()
+    ctx.fillStyle = pal.fillDark
+    ctx.beginPath()
+    ctx.ellipse(cx + rx * 0.1, cy, rx * 0.16, ry * 0.24, 0.4, 0, TAU)
+    ctx.fill()
+    ctx.strokeStyle = pal.accent
+    ctx.lineWidth = 1.6
+    ctx.beginPath()
+    ctx.moveTo(cx - rx * 0.2, cy - ry * 0.06)
+    ctx.quadraticCurveTo(cx, cy + ry * 0.12, cx + rx * 0.24, cy - ry * 0.02)
+    ctx.stroke()
+  } else if (type === 'avocado') {
+    ctx.beginPath()
+    ctx.ellipse(cx - rx * 0.04, cy, rx * 0.4, ry * 0.34, -0.45, 0, TAU)
+    ctx.fill()
+    ctx.fillStyle = pal.seed
+    ctx.beginPath()
+    ctx.ellipse(cx + rx * 0.1, cy, rx * 0.14, ry * 0.16, 0, 0, TAU)
+    ctx.fill()
+  } else if (type === 'cucumber') {
+    ctx.beginPath()
+    ctx.ellipse(cx, cy, rx * 0.34, ry * 0.34, 0, 0, TAU)
+    ctx.fill()
+    ctx.fillStyle = pal.seed
+    for (let i = 0; i < 5; i++) {
+      const a = (i / 5) * TAU
+      ctx.beginPath()
+      ctx.ellipse(cx + Math.cos(a) * rx * 0.14, cy + Math.sin(a) * ry * 0.14, 1.6, 1.6, 0, 0, TAU)
+      ctx.fill()
+    }
+  } else {
+    ctx.beginPath()
+    ctx.ellipse(cx, cy, rx * 0.36, ry * 0.28, 0.2, 0, TAU)
+    ctx.fill()
+    ctx.fillStyle = pal.accent
+    ctx.beginPath()
+    ctx.ellipse(cx - rx * 0.06, cy - ry * 0.05, rx * 0.14, ry * 0.1, 0.2, 0, TAU)
+    ctx.fill()
+  }
 }
 
 export function drawGhost(
@@ -515,7 +468,8 @@ export function drawGhost(
   quality: 'perfect' | 'good' | 'bad',
 ): void {
   const p = worldToScreen(cam, x, y)
-  const hw = (w / 2) * cam.scale
+  const rx = (w / 2) * cam.scale
+  const ry = Math.max(5, rx * 0.4)
   const color =
     quality === 'perfect'
       ? 'rgba(255, 201, 56, 0.7)'
@@ -526,11 +480,14 @@ export function drawGhost(
   ctx.strokeStyle = color
   ctx.lineWidth = 3
   ctx.setLineDash([6, 5])
-  ctx.strokeRect(p.x - hw, p.y - 4, hw * 2, 8)
+  ctx.beginPath()
+  ctx.ellipse(p.x, p.y, rx, ry, 0, 0, TAU)
+  ctx.stroke()
   ctx.fillStyle = color.replace(/0\.\d+\)/, '0.12)')
-  ctx.fillRect(p.x - hw, p.y - 4, hw * 2, 8)
+  ctx.fill()
   ctx.restore()
 }
+
 
 export function drawCrane(
   ctx: CanvasRenderingContext2D,
@@ -695,9 +652,9 @@ export function drawWasabiFlash(ctx: CanvasRenderingContext2D, cam: Camera, amou
 }
 
 export function drawVignette(ctx: CanvasRenderingContext2D, cam: Camera): void {
-  const g = ctx.createRadialGradient(cam.w / 2, cam.h * 0.5, cam.h * 0.25, cam.w / 2, cam.h * 0.5, cam.h * 0.9)
+  const g = ctx.createRadialGradient(cam.w / 2, cam.h * 0.5, cam.h * 0.35, cam.w / 2, cam.h * 0.5, cam.h * 0.95)
   g.addColorStop(0, 'rgba(0,0,0,0)')
-  g.addColorStop(1, 'rgba(30, 120, 180, 0.08)')
+  g.addColorStop(1, 'rgba(180, 120, 70, 0.07)')
   ctx.fillStyle = g
   ctx.fillRect(0, 0, cam.w, cam.h)
 }
