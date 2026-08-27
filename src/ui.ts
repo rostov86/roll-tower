@@ -25,26 +25,7 @@ export function mountUi(el: HTMLElement, h: UiHandlers): void {
   el.innerHTML = `
     <div class="panel splash" id="panel-splash" data-ui>
       <div class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 80 80" width="88" height="88">
-          <defs>
-            <radialGradient id="sky" cx="40%" cy="30%" r="70%">
-              <stop offset="0%" stop-color="#d8f4ff"/>
-              <stop offset="100%" stop-color="#7ec8f0"/>
-            </radialGradient>
-            <radialGradient id="sal" cx="40%" cy="35%" r="65%">
-              <stop offset="0%" stop-color="#ff8a6a"/>
-              <stop offset="100%" stop-color="#d94a2e"/>
-            </radialGradient>
-          </defs>
-          <circle cx="40" cy="40" r="38" fill="url(#sky)"/>
-          <ellipse cx="42" cy="46" rx="28" ry="22" fill="rgba(40,20,10,0.16)"/>
-          <ellipse cx="40" cy="44" rx="28" ry="12" fill="#0e2416"/>
-          <rect x="12" y="28" width="56" height="16" fill="#1a3d26"/>
-          <ellipse cx="40" cy="28" rx="28" ry="13" fill="#2f6340"/>
-          <ellipse cx="40" cy="28" rx="22" ry="10" fill="#fff4e4"/>
-          <ellipse cx="40" cy="28" rx="11" ry="7" fill="url(#sal)"/>
-          <ellipse cx="34" cy="24" rx="6" ry="3" fill="#fff" opacity="0.45"/>
-        </svg>
+        <img src="./brand/apple-touch-icon.png" width="96" height="96" alt="" />
       </div>
       <div class="eyebrow">${escapeHtml(brand.name)}</div>
       <h1>${escapeHtml(brand.gameName)}</h1>

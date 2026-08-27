@@ -5,24 +5,24 @@
 
 export const brand = {
   /** Shown in the header, splash, share text and PWA name. */
-  name: 'СушиМаркет',
+  name: 'Суши-Маркет',
   gameName: 'Башня роллов',
-  slogan: 'Качай кран. Тапай. Строй небоскрёб из роллов.',
+  slogan: 'Пока ждёшь заказ — тапай и строй башню.',
   shortSlogan: 'Тапни и строй.',
 
   /** Prefix for localStorage keys so two brands can share an origin. */
-  storagePrefix: 'sushimarket.rolltower.',
+  storagePrefix: 'sushi-market.rolltower.',
 
   /** PWA / browser chrome. */
-  themeColor: '#4ec6f5',
+  themeColor: '#E23724',
   backgroundColor: '#7ee7ff',
 
   /** Canvas / HUD type. */
   font: '"Nunito", "Manrope", system-ui, sans-serif',
 
   colors: {
-    primary: '#ff3b4e',
-    primaryDark: '#d01e36',
+    primary: '#E23724',
+    primaryDark: '#b81f12',
     primaryLight: '#ff6d7a',
     gold: '#ffc938',
     goldLight: '#ffe27a',
